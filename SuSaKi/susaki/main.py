@@ -4,12 +4,11 @@ Created on Apr 20, 2016
 @author: simon
 '''
 
-import json
 import requests
-from pprint import pprint
 import re
 from bs4 import BeautifulSoup
 import argparse
+from requests.exceptions import HTTPError
 
 
 def collect_page(word):
@@ -24,7 +23,7 @@ def extract_etymologies(json_page, language='fi'):
     try:
         etymology_list = json_page[language]
     except:
-        pass
+        etymology_list = None
     return etymology_list
 
 
@@ -55,17 +54,44 @@ def print_information(word, etymology_list):
         print_etymology_information(etymology)
 
 
-def run(language='fi'):
+def process_user_query(word, language):
+    try:
+        req = collect_page(word)
+    except HTTPError:
+        print('"{}" does not seem to have a page on Wiktionary'.format(word))
+    else:
+        etymology_list = extract_etymologies(req.json(), language=language)
+        if not etymology_list:
+            print(
+                '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, language))
+        else:
+            print_information(word, etymology_list)
+
+
+def run(language):
+    greet_user(language)
     while True:
         command = input('>> ')
-        if command.lower() == 'close()':
+        if command.lower() == 'close()' or command.lower() == 'exit()':
             break
-        word = command
-        req = collect_page(word)
-        etymology_list = extract_etymologies(req.json(), language=language)
-        print_information(word, etymology_list)
+        elif command.lower() == 'help()':
+            greet_user(language)
+        else:
+            word = command
+            process_user_query(word, language)
         print()
 
+
+def greet_user(language):
+    print('*********************************************')
+    print(
+        'Welcome to SuSaKi - a simple tool to access the the user generated dictionary Wikitionary.')
+    print('You are currently accessing the en-{} dictionary.'.format(language))
+    print(
+        'To look up a word and its meaning in English just write it an press Enter.')
+    print('To exit this program write "close()" or "exit()" and press Enter')
+    print('To show this message again write "help()" and press enter')
+    print('*********************************************')
 
 if __name__ == '__main__':
     # Parse arguments
