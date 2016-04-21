@@ -54,17 +54,25 @@ def print_information(word, etymology_list):
     for etymology in etymology_list:
         print_etymology_information(etymology)
 
+
+def run(language='fi'):
+    while True:
+        command = input('>> ')
+        if command.lower() == 'close()':
+            break
+        word = command
+        req = collect_page(word)
+        etymology_list = extract_etymologies(req.json(), language=language)
+        print_information(word, etymology_list)
+        print()
+
+
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(
         description='Look for translations into English on wiktionary')
-    parser.add_argument('word', help='The word you want to look up')
     parser.add_argument(
         "-l", "--language", help="The language you want translations from", default="fi")
     args = parser.parse_args()
     language = args.language
-    word = args.word
-
-    req = collect_page(word)
-    etymology_list = extract_etymologies(req.json(), language=language)
-    print_information(word, etymology_list)
+    run(language)
