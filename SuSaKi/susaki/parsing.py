@@ -19,7 +19,7 @@ class Article:
 class Definition:
 
     def __init__(self, pos, explanations=[]):
-        self.pos
+        self.pos = pos
         self.explanations = explanations
 
     def add_explanation(self, explanation):

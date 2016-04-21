@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import argparse
 from requests.exceptions import HTTPError
 from collections import defaultdict
+from susaki.connectors import RestfulConnector
 
 
 class Wiktionary:
@@ -17,6 +18,7 @@ class Wiktionary:
     def __init__(self, language):
         self.language = language
         self._setup_command_dict()
+        self.connector = RestfulConnector(language)
 
     def _setup_command_dict(self):
         self.command_dict = defaultdict(lambda: self.process_user_query)
@@ -35,59 +37,17 @@ class Wiktionary:
             old_language, self.language))
         return True
 
-    def collect_page(self, word):
-        url = 'https://en.wiktionary.org/api/rest_v1/page/definition/{}'.format(
-            word)
-        req = requests.get(url)
-        req.raise_for_status()  # Test for bad response
-        return req
-
-    def extract_definitions(self, json_page):
-        try:
-            etymology_list = json_page[self.language]
-        except:
-            etymology_list = None
-        return etymology_list
-
-    def clean_line(self, line):
-        # Apparently we have to soup twice before it recognizes the tags
-        soup = BeautifulSoup(line, 'html.parser')
-        soup = BeautifulSoup(soup.get_text(), 'html.parser')
-        for tag in soup.findAll(True):
-            tag.unwrap()
-        text = soup.get_text()
-        text = re.sub(r'  +', ' ', text)
-        return text
-
-    def parse_definition(self, definition_dict):
-        print(definition_dict['partOfSpeech'])
-        definitions = definition_dict['definitions']
-        for definition in definitions:
-            print(' ' + self.clean_line(definition['definition']))
-            #examples = definition['examples']
-
+    def print_information(self, article):
+        print('Search term: {}'.format(article.word))
         print()
-
-    def print_information(self, word, etymology_list):
-        print('Search term: {}'.format(word))
-        print()
-        for etymology in etymology_list:
-            self.parse_definition(etymology)
+        for definition in article.definitions:
+            print(definition.pos)
+            for explanation in definition.explanations:
+                print("  " + explanation.explanation)
 
     def process_user_query(self, word):
-        try:
-            req = self.collect_page(word)
-        except HTTPError:
-            print(
-                '"{}" does not seem to have a page on Wiktionary'.format(word))
-        else:
-            etymology_list = self.extract_definitions(req.json())
-            if not etymology_list:
-                print(
-                    '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
-            else:
-                self.print_information(word, etymology_list)
-        return True
+        article = self.connector.collect_article(word)
+        self.print_information(article)
 
     def greet_user(self, command):
         stop_word = [

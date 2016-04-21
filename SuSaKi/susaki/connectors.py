@@ -6,6 +6,7 @@ Created on Apr 21, 2016
 import abc
 import requests
 import re
+from pprint import pprint
 
 from bs4 import BeautifulSoup
 
@@ -27,6 +28,9 @@ class RestfulConnector(Connector):
     '''
     Use this class to connect to Wiktionary through their RESTful API
     '''
+
+    def __init__(self, language):
+        super().__init__(language)
 
     def collect_page(self, word):
         url = 'https://en.wiktionary.org/api/rest_v1/page/definition/{}'.format(
@@ -63,7 +67,8 @@ class RestfulConnector(Connector):
             explanation = Explanation(explanation_text)
             try:
                 examples = element['examples']
-                explanation.add_example(examples)
+                for example in examples:
+                    explanation.add_example(self.clean_line(example))
             except KeyError:
                 pass
             definition.add_explanation(explanation)
@@ -86,5 +91,4 @@ class RestfulConnector(Connector):
                 for definition_dict in definition_dict_list:
                     definition = self.parse_definition(definition_dict)
                     article.add_definition(definition)
-                self.print_information(word, definition_dict_list)
         return article
