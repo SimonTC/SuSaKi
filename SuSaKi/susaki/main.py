@@ -85,12 +85,12 @@ def run(language):
 def greet_user(language):
     print('*********************************************')
     print(
-        'Welcome to SuSaKi - a simple tool to access the the user generated dictionary Wikitionary.')
+        'Welcome to SuSaKi - a simple tool to access the online user generated dictionary Wikitionary.')
     print('You are currently accessing the en-{} dictionary.'.format(language))
     print(
         'To look up a word and its meaning in English just write it an press Enter.')
     print('To exit this program write "close()" or "exit()" and press Enter')
-    print('To show this message again write "help()" and press enter')
+    print('To show this message again write "help()" and press Enter')
     print('*********************************************')
 
 if __name__ == '__main__':
