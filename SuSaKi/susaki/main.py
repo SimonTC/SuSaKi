@@ -44,10 +44,13 @@ class Wiktionary:
             print(definition.pos)
             for explanation in definition.explanations:
                 print("  " + explanation.explanation)
+            print()
 
     def process_user_query(self, word):
         article = self.connector.collect_article(word)
-        self.print_information(article)
+        if article:
+            self.print_information(article)
+        return True
 
     def greet_user(self, command):
         stop_word = [

@@ -79,11 +79,13 @@ class RestfulConnector(Connector):
         try:
             req = self.collect_page(word)
         except HTTPError:
+            article = None
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))
         else:
             definition_dict_list = self.extract_definitions(req.json())
             if not definition_dict_list:
+                article = None
                 print(
                     '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
             else:
