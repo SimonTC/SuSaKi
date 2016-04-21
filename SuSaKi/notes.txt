@@ -1,0 +1,8 @@
+Data structure:
+
+Article
+ 	Definitions
+ 		Explanations
+ 			Examples
+ 		POS
+ 	

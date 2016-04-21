@@ -42,7 +42,7 @@ class Wiktionary:
         req.raise_for_status()  # Test for bad response
         return req
 
-    def extract_etymologies(self, json_page):
+    def extract_definitions(self, json_page):
         try:
             etymology_list = json_page[self.language]
         except:
@@ -59,11 +59,12 @@ class Wiktionary:
         text = re.sub(r'  +', ' ', text)
         return text
 
-    def print_etymology_information(self, etymology_dict):
-        print(etymology_dict['partOfSpeech'])
-        definitions = etymology_dict['definitions']
+    def parse_definition(self, definition_dict):
+        print(definition_dict['partOfSpeech'])
+        definitions = definition_dict['definitions']
         for definition in definitions:
             print(' ' + self.clean_line(definition['definition']))
+            #examples = definition['examples']
 
         print()
 
@@ -71,7 +72,7 @@ class Wiktionary:
         print('Search term: {}'.format(word))
         print()
         for etymology in etymology_list:
-            self.print_etymology_information(etymology)
+            self.parse_definition(etymology)
 
     def process_user_query(self, word):
         try:
@@ -80,7 +81,7 @@ class Wiktionary:
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))
         else:
-            etymology_list = self.extract_etymologies(req.json())
+            etymology_list = self.extract_definitions(req.json())
             if not etymology_list:
                 print(
                     '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
