@@ -6,7 +6,7 @@ Created on Apr 20, 2016
 
 import argparse
 from collections import defaultdict
-from susaki.connectors import RestfulConnector
+from susaki.wiktionary.connectors import RestfulConnector
 from requests.exceptions import HTTPError
 
 

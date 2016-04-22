@@ -9,7 +9,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from susaki.parsing import Article, Definition, Explanation
+from susaki.wiktionary.parsing import Article, Definition, Explanation
 from requests.exceptions import HTTPError
 
 
