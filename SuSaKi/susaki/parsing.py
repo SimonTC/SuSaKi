@@ -7,10 +7,10 @@ Created on Apr 21, 2016
 
 class Article:
 
-    def __init__(self, word, language, definitions=[]):
+    def __init__(self, word, language):
         self.word = word
         self.language = language
-        self.definitions = definitions
+        self.definitions = []
 
     def add_definition(self, definition):
         self.definitions.append(definition)
