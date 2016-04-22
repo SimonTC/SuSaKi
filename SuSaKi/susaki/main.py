@@ -32,9 +32,9 @@ class Wiktionary:
     def change_language(self, command):
         new_language = input('Which language would you like to use?: >>')
         old_language = self.language
-        self.language = new_language
+        self.connector = RestfulConnector(new_language)
         print('The language was changed from {} to {}'.format(
-            old_language, self.language))
+            old_language, self.connector.language))
         return True
 
     def print_information(self, article):
