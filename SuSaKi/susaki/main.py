@@ -4,11 +4,7 @@ Created on Apr 20, 2016
 @author: simon
 '''
 
-import requests
-import re
-from bs4 import BeautifulSoup
 import argparse
-from requests.exceptions import HTTPError
 from collections import defaultdict
 from susaki.connectors import RestfulConnector
 
