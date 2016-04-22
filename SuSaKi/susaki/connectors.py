@@ -32,14 +32,14 @@ class RestfulConnector(Connector):
     def __init__(self, language):
         super().__init__(language)
 
-    def collect_page(self, word):
+    def _collect_page(self, word):
         url = 'https://en.wiktionary.org/api/rest_v1/page/definition/{}'.format(
             word)
         req = requests.get(url)
         req.raise_for_status()  # Test for bad response
         return req
 
-    def extract_definitions(self, json_page):
+    def _extract_definitions(self, json_page):
         """Return a list of dictionaries each containing information about a 
         different definition of the given word"""
         try:
@@ -48,7 +48,7 @@ class RestfulConnector(Connector):
             definition_list = None
         return definition_list
 
-    def clean_line(self, line):
+    def _clean_line(self, line):
         # Apparently we have to soup twice before it recognizes the tags
         soup = BeautifulSoup(line, 'html.parser')
         soup = BeautifulSoup(soup.get_text(), 'html.parser')
@@ -58,17 +58,17 @@ class RestfulConnector(Connector):
         text = re.sub(r'  +', ' ', text)
         return text
 
-    def parse_definition(self, definition_dict):
+    def _parse_definition(self, definition_dict):
         pos = definition_dict['partOfSpeech']
         definition = Definition(pos)
         definition_elements = definition_dict['definitions']
         for element in definition_elements:
-            explanation_text = self.clean_line(element['definition'])
+            explanation_text = self._clean_line(element['definition'])
             explanation = Explanation(explanation_text)
             try:
                 examples = element['examples']
                 for example in examples:
-                    explanation.add_example(self.clean_line(example))
+                    explanation.add_example(self._clean_line(example))
             except KeyError:
                 pass
             definition.add_explanation(explanation)
@@ -77,13 +77,13 @@ class RestfulConnector(Connector):
 
     def collect_article(self, word):
         try:
-            req = self.collect_page(word)
+            req = self._collect_page(word)
         except HTTPError:
             article = None
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))
         else:
-            definition_dict_list = self.extract_definitions(req.json())
+            definition_dict_list = self._extract_definitions(req.json())
             if not definition_dict_list:
                 article = None
                 print(
@@ -91,6 +91,15 @@ class RestfulConnector(Connector):
             else:
                 article = Article(word, self.language)
                 for definition_dict in definition_dict_list:
-                    definition = self.parse_definition(definition_dict)
+                    definition = self._parse_definition(definition_dict)
                     article.add_definition(definition)
         return article
+
+
+class RawConnector(Connector):
+
+    def __init__(self, language):
+        super().__init__(language)
+
+    def collect_article(self, word):
+        pass
