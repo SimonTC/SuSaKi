@@ -7,6 +7,7 @@ Created on Apr 20, 2016
 import argparse
 from collections import defaultdict
 from susaki.connectors import RestfulConnector
+from requests.exceptions import HTTPError
 
 
 class Wiktionary:
@@ -43,8 +44,15 @@ class Wiktionary:
             print()
 
     def process_user_query(self, word):
-        article = self.connector.collect_article(word)
-        if article:
+        try:
+            article = self.connector.collect_article(word)
+        except HTTPError:
+            print(
+                '"{}" does not seem to have a page on Wiktionary'.format(word))
+        except IndexError:
+            print(
+                '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+        else:
             self.print_information(article)
         return True
 
