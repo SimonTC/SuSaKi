@@ -19,11 +19,15 @@ class VerbConjugator():
 
     strong_kpt_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
                            r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
-                           r'[^hst](?:k)|(?:p)|[^s](?:t)']
+                           r'(?!([hst])(?:k)|(?:p)|(?!s)(?:t)']
 
     weak_kpt_patterns = [r'(lje|lje|rje|rje|hje|uvu|yvy)',
                          r'(ng|lv|rv|mm|hd|ll|rr|nn)',
-                         r'[^hst](?:k)|(?:p)|[^s](?:t)|v|d|r|l']
+                         r'((?![hst])(?:k)|(?:p)|(?!s)(?:t)|v|d|r|l)']
+
+    post_pattern_dict = {1: r'(?=[eyuioaöä]$)',
+                         2: r'$)',
+                         3: r'(?='}
 
     pre_pattern = r'(?=\w*?)'
     post_pattern = r'(?=[aeouiyäö]*$)'
@@ -86,7 +90,7 @@ class VerbConjugator():
 
     def _extract_stem(self, naive_stem, to_strong):
         """
-        Extract the stem grom the naive stem.
+        Extract the stem from the naive stem.
         naive_stem: the stem of a word without kpt-changes
         to_strong: boolean indicating if the naive stem should be changed from weak to strong (True)
                    or from strong to weak (False)
@@ -106,7 +110,8 @@ class VerbConjugator():
         match, pattern = self._find_kpt_pattern(naive_stem, kpt_pattern_list)
         if match:
             kpt_group = match.group(0)
-            logger.debug('KPT-group found: {}'.format(kpt_group))
+            logger.debug(
+                'Found KPT-group {} using pattern {}'.format(kpt_group, pattern))
             replacement = kpt_pattern_dict[kpt_group]
             logger.debug(
                 'Replacement for {} is {}'.format(kpt_group, replacement))
@@ -127,8 +132,11 @@ class VerbConjugator():
                 stem = self._extract_stem(naive_stem, to_strong)
             else:
                 stem = naive_stem
-        if verb_type == 2:
+        elif verb_type == 2:
             stem = verb[:-2]
+        elif verb_type == 3:
+            naive_stem = verb[:-2]
+            stem = self._extract_stem(naive_stem, to_strong=True)
         return stem
 
     def _conjugate_present(self, verb, verb_type):
@@ -144,7 +152,7 @@ class VerbConjugator():
                                 'me': weak_stem + 'mme',
                                 'te': weak_stem + 'tte',
                                 'he': strong_stem + 'vat'}
-        if verb_type == 2:
+        elif verb_type == 2:
             stem = self._infinitive_stem(verb, verb_type, to_strong=False)
             conjugation_dict = {'minä': stem + 'n',
                                 'sinä': stem + 't',
@@ -152,6 +160,14 @@ class VerbConjugator():
                                 'me': stem + 'mme',
                                 'te': stem + 'tte',
                                 'he': stem + 'vat'}
+        elif verb_type == 3:
+            stem = self._infinitive_stem(verb, verb_type, to_strong=False)
+            conjugation_dict = {'minä': stem + 'en',
+                                'sinä': stem + 'et',
+                                'hän': stem + 'ee',
+                                'me': stem + 'emme',
+                                'te': stem + 'ette',
+                                'he': stem + 'evat'}
 
         logger.debug(conjugation_dict)
         return conjugation_dict
@@ -187,7 +203,7 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'syödä'
+    verb = 'ajatella'
     conjugator = VerbConjugator()
     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     print(conjugation_dict)
