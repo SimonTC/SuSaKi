@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 
 class VerbConjugator():
 
-    strong_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
-                       r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
-                       r'[^hst](?:k)|(?:p)|[^s](?:t)']
+    strong_kpt_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
+                           r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
+                           r'[^hst](?:k)|(?:p)|[^s](?:t)']
 
-    weak_patterns = [r'(lje|lje|rje|rje|hje|uvu|yvy)',
-                     r'(ng|lv|rv|mm|hd|ll|rr|nn)',
-                     r'[^hst](?:k)|(?:p)|[^s](?:t)|v|d|r|l']
+    weak_kpt_patterns = [r'(lje|lje|rje|rje|hje|uvu|yvy)',
+                         r'(ng|lv|rv|mm|hd|ll|rr|nn)',
+                         r'[^hst](?:k)|(?:p)|[^s](?:t)|v|d|r|l']
 
     pre_pattern = r'(?=\w*?)'
     post_pattern = r'(?=[aeouiyäö]*$)'
@@ -60,45 +60,66 @@ class VerbConjugator():
 #             json.dump(self.KPT_dict_strong, filehandler)
 
     def _setup_weak_kpt_dict(self):
+        """ Create the weak kpt dict as a mirror of the string kpt dict"""
         self.KPT_dict_weak = {
             value: key for key, value in self.KPT_dict_strong.items()}
 
     def conjugate_verb(self, verb, tense):
+        """ Conjugate the verb in the given tense"""
         verb_type = self.verb_type(verb)
         if tense == 'present':
             return self._conjugate_present(verb, verb_type)
 
-    def _find_pattern(self, word, pattern_list):
-        for pattern in pattern_list:
+    def _find_kpt_pattern(self, word, pattern_list):
+        """ 
+        Using the prioritized list of patterns, return the first 
+        match together with its corresponding kpt_pattern.
+        """
+        for kpt_pattern in pattern_list:
             search_pattern = '{}{}{}'.format(
-                self.pre_pattern, pattern, self.post_pattern)
+                self.pre_pattern, kpt_pattern, self.post_pattern)
             match = re.search(search_pattern, word)
             if match:
-                return match, pattern
-        return None
+                return match, kpt_pattern
+        return None, None
+
+    def _extract_stem(self, naive_stem, kpt_pattern_list, kpt_pattern_dict):
+        """
+        Extract the stem grom the naive stem.
+        naive_stem: the stem of a word without kpt-changes
+        kpt_pattern_list: the prioritized list of kpt-patterns
+        kpt_pattern_dict: the kpt-dictionary to use to convert the found kpt-group
+                          from string to weak or  weak to strong
+        """
+        logger.debug(
+            'Extracting the infinitive stem using the naïve stem {}'.format(naive_stem))
+        match, pattern = self._find_kpt_pattern(naive_stem, kpt_pattern_list)
+        if match:
+            kpt_group = match.group(0)
+            logger.debug('KPT-group found: {}'.format(kpt_group))
+            replacement = kpt_pattern_dict[kpt_group]
+            logger.debug(
+                'Replacement for {} is {}'.format(kpt_group, replacement))
+            correct_stem = re.sub(pattern, replacement, naive_stem)
+            logger.debug(
+                'The correct stem of {} is {}'.format(naive_stem, correct_stem))
+        else:
+            logger.debug('No kpt-changes in {}'.format(naive_stem))
+            correct_stem = naive_stem
+        return correct_stem
 
     def _infinitive_stem(self, verb, verb_type, to_strong=False, to_weak=False):
+        """Extract the infinite naive_stem of the verb"""
         if verb_type == 1:
-            stem = verb[:-1]
-            logger.debug('Stem is {}'.format(stem))
+            naive_stem = verb[:-1]
+            logger.debug('Naïve stem is {}'.format(naive_stem))
             if to_weak:
-                logger.debug(
-                    'Extracting the weak infinitive stem of the verb {}'.format(verb))
-                #                 strong_group = re.search(self.pattern_strong, stem).group(0)
-                match, pattern = self._find_pattern(
-                    stem, self.strong_patterns)
-                strong_group = match.group(0)
-                logger.debug('String group found: {}'.format(strong_group))
-                weak_replacement = self.KPT_dict_strong[strong_group]
-                logger.debug(
-                    'Replacement for {} is {}'.format(strong_group, weak_replacement))
-                weak_stem = re.sub(pattern, weak_replacement, stem)
-                logger.debug(
-                    'The weak stem of {} is {}'.format(verb, weak_stem))
-                stem = weak_stem
-            return stem
+                naive_stem = self._extract_stem(
+                    naive_stem, self.strong_kpt_patterns, self.KPT_dict_strong)
+            return naive_stem
 
     def _conjugate_present(self, verb, verb_type):
+        """Conjugate the given verb in its present form"""
         conjugation_dict = {}
         if verb_type == 1:
             weak_stem = self._infinitive_stem(verb, verb_type, to_weak=True)
@@ -144,7 +165,7 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'oppia'
+    verb = 'antaa'
     conjugator = VerbConjugator()
     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     print(conjugation_dict)
