@@ -19,10 +19,15 @@ class VerbConjugator():
     strong_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
                        r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
                        r'[^hst](?:k)|(?:p)|[^s](?:t)']
+
+    weak_patterns = [r'(lje|lje|rje|rje|hje|uvu|yvy)',
+                     r'(ng|lv|rv|mm|hd|ll|rr|nn)',
+                     r'[^hst](?:k)|(?:p)|[^s](?:t)|v|d|r|l']
+
     pre_pattern = r'(?=\w*?)'
     post_pattern = r'(?=[aeouiyäö]*$)'
 
-    pattern_strong = r'(?=\w*?)((?:lke|lki|rke|rki|hke|uku|yky)|(?:lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)|(?:[^hst](?:k)|(?:p)|[^s](?:t)))(?=[aeouiyäö]+$)'
+    #pattern_strong = r'(?=\w*?)((?:lke|lki|rke|rki|hke|uku|yky)|(?:lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)|(?:[^hst](?:k)|(?:p)|[^s](?:t)))(?=[aeouiyäö]+$)'
 
     KPT_dict_strong = {
         'kk': 'k',
