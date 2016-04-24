@@ -7,12 +7,58 @@ Created on Apr 22, 2016
 import re
 import logging
 from collections import namedtuple
-import json
-from cgitb import strong
 
 VerbTypePattern = namedtuple("VerbTypePattern", "pattern, verb_type")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+vowels = 'eyuioaöä'
+consonants = 'qwrtipsdfghjklzxcvbnm'
+
+
+class SyllableDivisor:
+
+    def divide_word(self, word):
+        """Divide the word into syllables using the rules from
+        http://people.uta.fi/~km56049/finnish/syldiv.html
+        """
+        syllable_indicator = ''
+        syllable_letters = ''
+        syllable = ''
+        for i, letter in enumerate(word):
+            if syllable_indicator == '':
+                if letter in vowels:
+                    syllable_indicator += 'V'
+                    syllable_letters += letter
+            else:
+                syllable_letters += letter
+                if letter in vowels:
+                    syllable_indicator += 'V'
+                else:
+                    syllable_indicator += 'C'
+            if syllable_indicator in ['VCV', 'VCCV', 'VCCCV']:
+                syllable = word[:i - 1]
+                rest = word[i - 1:]
+                break
+            elif syllable_indicator == 'VV':
+                diphtong_pattern = re.compile(
+                    r'([aeiouyäö]i)|([aeiu]u)|([eiäö]y)|ie|uo|yö')
+                long_sound_pattern = re.compile(r'aa|ee|yy|uu|ii|oo|ää|öö')
+
+                if not (diphtong_pattern.match(syllable_letters) or long_sound_pattern.match(syllable_letters)):
+                    syllable = word[:i]
+                    rest = word[i:]
+                    break
+                else:
+                    syllable_indicator = syllable_indicator[-1]
+                    syllable_letters = syllable_letters[-1]
+
+        if syllable != '':
+            syllable_list = [syllable]
+            syllable_list += self.divide_word(rest)
+        else:
+            syllable_list = [word]
+        return syllable_list
 
 
 class VerbConjugator():
@@ -204,7 +250,10 @@ def print_conjugation(conjugation_dict):
 
 if __name__ == '__main__':
     verb = 'ajatella'
-    conjugator = VerbConjugator()
-    conjugation_dict = conjugator.conjugate_verb(verb, 'present')
-    print(conjugation_dict)
-    print_conjugation(conjugation_dict)
+#     conjugator = VerbConjugator()
+#     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
+#     print(conjugation_dict)
+#     print_conjugation(conjugation_dict)
+    word = 'kyllämattimunkkitanskaruskea'
+    divisor = SyllableDivisor()
+    print(divisor.divide_word(word))
