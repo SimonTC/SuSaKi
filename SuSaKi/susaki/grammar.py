@@ -8,6 +8,7 @@ import re
 import logging
 from collections import namedtuple
 import json
+from cgitb import strong
 
 VerbTypePattern = namedtuple("VerbTypePattern", "pattern, verb_type")
 logging.basicConfig(level=logging.DEBUG)
@@ -83,16 +84,25 @@ class VerbConjugator():
                 return match, kpt_pattern
         return None, None
 
-    def _extract_stem(self, naive_stem, kpt_pattern_list, kpt_pattern_dict):
+    def _extract_stem(self, naive_stem, to_strong):
         """
         Extract the stem grom the naive stem.
         naive_stem: the stem of a word without kpt-changes
-        kpt_pattern_list: the prioritized list of kpt-patterns
-        kpt_pattern_dict: the kpt-dictionary to use to convert the found kpt-group
-                          from string to weak or  weak to strong
+        to_strong: boolean indicating if the naive stem should be changed from weak to strong (True)
+                   or from strong to weak (False)
         """
+
+        if to_strong:
+            kpt_pattern_list = self.weak_kpt_patterns
+            kpt_pattern_dict = self.weak_kpt_patterns
+            stem_type = 'strong'
+        else:
+            kpt_pattern_list = self.strong_kpt_patterns
+            kpt_pattern_dict = self.KPT_dict_strong
+            stem_type = 'weak'
+
         logger.debug(
-            'Extracting the infinitive stem using the naïve stem {}'.format(naive_stem))
+            'Extracting the {} infinitive stem using the naïve stem {}'.format(stem_type, naive_stem))
         match, pattern = self._find_kpt_pattern(naive_stem, kpt_pattern_list)
         if match:
             kpt_group = match.group(0)
@@ -108,21 +118,24 @@ class VerbConjugator():
             correct_stem = naive_stem
         return correct_stem
 
-    def _infinitive_stem(self, verb, verb_type, to_strong=False, to_weak=False):
+    def _infinitive_stem(self, verb, verb_type, to_strong):
         """Extract the infinite naive_stem of the verb"""
         if verb_type == 1:
             naive_stem = verb[:-1]
             logger.debug('Naïve stem is {}'.format(naive_stem))
-            if to_weak:
-                naive_stem = self._extract_stem(
-                    naive_stem, self.strong_kpt_patterns, self.KPT_dict_strong)
-            return naive_stem
+            if not to_strong:
+                stem = self._extract_stem(naive_stem, to_strong)
+            else:
+                stem = naive_stem
+        if verb_type == 2:
+            stem = verb[:-2]
+        return stem
 
     def _conjugate_present(self, verb, verb_type):
         """Conjugate the given verb in its present form"""
         conjugation_dict = {}
         if verb_type == 1:
-            weak_stem = self._infinitive_stem(verb, verb_type, to_weak=True)
+            weak_stem = self._infinitive_stem(verb, verb_type, to_strong=False)
             strong_stem = self._infinitive_stem(
                 verb, verb_type, to_strong=True)
             conjugation_dict = {'minä': weak_stem + 'n',
@@ -131,6 +144,15 @@ class VerbConjugator():
                                 'me': weak_stem + 'mme',
                                 'te': weak_stem + 'tte',
                                 'he': strong_stem + 'vat'}
+        if verb_type == 2:
+            stem = self._infinitive_stem(verb, verb_type, to_strong=False)
+            conjugation_dict = {'minä': stem + 'n',
+                                'sinä': stem + 't',
+                                'hän': stem,
+                                'me': stem + 'mme',
+                                'te': stem + 'tte',
+                                'he': stem + 'vat'}
+
         logger.debug(conjugation_dict)
         return conjugation_dict
 
@@ -165,7 +187,7 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'antaa'
+    verb = 'syödä'
     conjugator = VerbConjugator()
     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     print(conjugation_dict)
