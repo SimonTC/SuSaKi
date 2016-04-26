@@ -71,14 +71,8 @@ class VerbConjugator():
                          r'(ng|lv|rv|mm|hd|ll|rr|nn)',
                          r'((?!([hst]))(?:k)|(?:p)|(?:(?!s)(?:t))|v|d|r|l)']
 
-    post_pattern_dict = {1: r'(?=[eyuioaöä]$)',
-                         2: r'$)',
-                         3: r'(?='}
-
     pre_pattern = r'(?=\w*?)'
     post_pattern = r'(?=[aeouiyäö]*$)'
-
-    #pattern_strong = r'(?=\w*?)((?:lke|lki|rke|rki|hke|uku|yky)|(?:lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)|(?:[^hst](?:k)|(?:p)|[^s](?:t)))(?=[aeouiyäö]+$)'
 
     KPT_dict_strong = {
         'kk': 'k',
@@ -210,68 +204,59 @@ class VerbConjugator():
                 return True
         return False
 
+    def _create_conjugation_dict(self, stem, han_end, he_end):
+        conjugation_dict = {'minä': stem + 'n',
+                            'sinä': stem + 't',
+                            'hän': stem + han_end,
+                            'me': stem + 'mme',
+                            'te': stem + 'tte',
+                            'he': stem + he_end}
+        return conjugation_dict
+
     def _conjugate_present(self, verb, verb_type):
         """Conjugate the given verb in its present form"""
         conjugation_dict = {}
         if self._letters_exists_in_word({'a', 'o', 'u'}, verb):
-            he = 'vat'
+            he_end = 'vat'
         else:
-            he = 'vät'
+            he_end = 'vät'
         if verb_type == 1:
             weak_stem = self._infinitive_stem(verb, verb_type, to_strong=False)
             strong_stem = self._infinitive_stem(
                 verb, verb_type, to_strong=True)
-            conjugation_dict = {'minä': weak_stem + 'n',
-                                'sinä': weak_stem + 't',
-                                'hän': strong_stem + strong_stem[-1],
-                                'me': weak_stem + 'mme',
-                                'te': weak_stem + 'tte',
-                                'he': strong_stem + he}
+            conjugation_dict = self._create_conjugation_dict(
+                weak_stem, '', he_end)
+            conjugation_dict['hän'] = strong_stem + strong_stem[-1]
+            conjugation_dict['he_end'] = strong_stem + he_end
+
         elif verb_type == 2:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
-            conjugation_dict = {'minä': stem + 'n',
-                                'sinä': stem + 't',
-                                'hän': stem,
-                                'me': stem + 'mme',
-                                'te': stem + 'tte',
-                                'he': stem + he}
+            conjugation_dict = self._create_conjugation_dict(stem, '', he_end)
+
         elif verb_type == 3:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
-            conjugation_dict = {'minä': stem + 'en',
-                                'sinä': stem + 'et',
-                                'hän': stem + 'ee',
-                                'me': stem + 'emme',
-                                'te': stem + 'ette',
-                                'he': stem + 'e' + he}
+            conjugation_dict = self._create_conjugation_dict(
+                stem + 'e', 'e', he_end)
+
         elif verb_type == 4:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
             last_vowel = stem[-1]
             if stem[-2] == last_vowel:
                 last_vowel = ''
-            conjugation_dict = {'minä': stem + 'n',
-                                'sinä': stem + 't',
-                                'hän': stem + last_vowel,
-                                'me': stem + 'mme',
-                                'te': stem + 'tte',
-                                'he': stem + he}
+            conjugation_dict = self._create_conjugation_dict(
+                stem, last_vowel, he_end)
+
         elif verb_type == 5:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
             last_vowel = stem[-1]
-            conjugation_dict = {'minä': stem + 'n',
-                                'sinä': stem + 't',
-                                'hän': stem + last_vowel,
-                                'me': stem + 'mme',
-                                'te': stem + 'tte',
-                                'he': stem + he}
+            conjugation_dict = self._create_conjugation_dict(
+                stem, last_vowel, he_end)
+
         elif verb_type == 6:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
             last_vowel = stem[-1]
-            conjugation_dict = {'minä': stem + 'n',
-                                'sinä': stem + 't',
-                                'hän': stem + last_vowel,
-                                'me': stem + 'mme',
-                                'te': stem + 'tte',
-                                'he': stem + he}
+            conjugation_dict = self._create_conjugation_dict(
+                stem, last_vowel, he_end)
 
         logger.debug(conjugation_dict)
         return conjugation_dict
@@ -307,11 +292,10 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'pidetä'
+    verb = 'puhua'
     conjugator = VerbConjugator()
     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
-    print(conjugation_dict)
     print_conjugation(conjugation_dict)
-    word = 'kirjoitta'
-    divisor = SyllableDivisor()
-    print(divisor.divide_word(word))
+#     word = 'kirjoitta'
+#     divisor = SyllableDivisor()
+#     print(divisor.divide_word(word))
