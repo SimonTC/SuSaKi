@@ -65,11 +65,11 @@ class VerbConjugator():
 
     strong_kpt_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
                            r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
-                           r'(?!([hst])(?:k)|(?:p)|(?!s)(?:t)']
+                           r'((?!([hst]))(?:k)|(?:p)|(?!s)(?:t))']
 
     weak_kpt_patterns = [r'(lje|lje|rje|rje|hje|uvu|yvy)',
                          r'(ng|lv|rv|mm|hd|ll|rr|nn)',
-                         r'((?![hst])(?:k)|(?:p)|(?!s)(?:t)|v|d|r|l)']
+                         r'((?!([hst]))(?:k)|(?:p)|(?:(?!s)(?:t))|v|d|r|l)']
 
     post_pattern_dict = {1: r'(?=[eyuioaöä]$)',
                          2: r'$)',
@@ -146,7 +146,7 @@ class VerbConjugator():
 
         if to_strong:
             kpt_pattern_list = self.weak_kpt_patterns
-            kpt_pattern_dict = self.weak_kpt_patterns
+            kpt_pattern_dict = self.KPT_dict_weak
             stem_type = 'strong'
         else:
             kpt_pattern_list = self.strong_kpt_patterns
@@ -258,7 +258,7 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'puhua'
+    verb = 'ajatella'
     conjugator = VerbConjugator()
     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     print(conjugation_dict)
