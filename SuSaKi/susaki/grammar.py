@@ -133,7 +133,7 @@ class VerbConjugator():
                 self.pre_pattern, kpt_pattern, self.post_pattern)
             match = re.search(search_pattern, word)
             if match:
-                return match, kpt_pattern
+                return match, search_pattern
         return None, None
 
     def _extract_stem(self, naive_stem, to_strong):
@@ -192,6 +192,9 @@ class VerbConjugator():
             naive_stem = verb[:-3]
             stem = self._extract_stem(naive_stem, to_strong=True)
             stem = stem + 'l'
+        elif verb_type == 4:
+            naive_stem = re.sub(r't(?=.$)', '', verb)
+            stem = self._extract_stem(naive_stem, to_strong=True)
         return stem
 
     def _conjugate_present(self, verb, verb_type):
@@ -208,7 +211,7 @@ class VerbConjugator():
                                 'te': weak_stem + 'tte',
                                 'he': strong_stem + 'vat'}
         elif verb_type == 2:
-            stem = self._infinitive_stem(verb, verb_type, to_strong=False)
+            stem = self._infinitive_stem(verb, verb_type, to_strong=True)
             conjugation_dict = {'minä': stem + 'n',
                                 'sinä': stem + 't',
                                 'hän': stem,
@@ -216,13 +219,24 @@ class VerbConjugator():
                                 'te': stem + 'tte',
                                 'he': stem + 'vat'}
         elif verb_type == 3:
-            stem = self._infinitive_stem(verb, verb_type, to_strong=False)
+            stem = self._infinitive_stem(verb, verb_type, to_strong=True)
             conjugation_dict = {'minä': stem + 'en',
                                 'sinä': stem + 'et',
                                 'hän': stem + 'ee',
                                 'me': stem + 'emme',
                                 'te': stem + 'ette',
                                 'he': stem + 'evat'}
+        elif verb_type == 4:
+            stem = self._infinitive_stem(verb, verb_type, to_strong=True)
+            last_vowel = stem[-1]
+            if stem[-2] == last_vowel:
+                last_vowel = ''
+            conjugation_dict = {'minä': stem + 'n',
+                                'sinä': stem + 't',
+                                'hän': stem + last_vowel,
+                                'me': stem + 'mme',
+                                'te': stem + 'tte',
+                                'he': stem + 'vat'}
 
         logger.debug(conjugation_dict)
         return conjugation_dict
@@ -258,7 +272,7 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'ajatella'
+    verb = 'tavata'
     conjugator = VerbConjugator()
     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     print(conjugation_dict)
