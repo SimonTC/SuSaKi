@@ -107,6 +107,7 @@ class VerbConjugator():
 
     def __init__(self):
         self._setup_weak_kpt_dict()
+        self.syllable_divisor = SyllableDivisor()
 #         with open('dict.txt', 'w') as filehandler:
 #             json.dump(self.KPT_dict_strong, filehandler)
 
@@ -125,6 +126,7 @@ class VerbConjugator():
         """ 
         Using the prioritized list of patterns, return the first 
         match together with its corresponding kpt_pattern.
+        The letters in the match has to be near the border between the last two syllables.
         """
         for kpt_pattern in pattern_list:
             search_pattern = '{}{}{}'.format(
@@ -170,7 +172,11 @@ class VerbConjugator():
         return correct_stem
 
     def _infinitive_stem(self, verb, verb_type, to_strong):
-        """Extract the infinite naive_stem of the verb"""
+        """
+        Extract the infinite stem of the verb
+        if to_strong == True the strong stem will be extracted.
+        Otherwise the weak stem is extracted.
+        """
         if verb_type == 1:
             naive_stem = verb[:-1]
             logger.debug('Naïve stem is {}'.format(naive_stem))
@@ -181,8 +187,11 @@ class VerbConjugator():
         elif verb_type == 2:
             stem = verb[:-2]
         elif verb_type == 3:
-            naive_stem = verb[:-2]
+            # We also remove the last 'l' since if we keep it it messes up the
+            # KPT-changes
+            naive_stem = verb[:-3]
             stem = self._extract_stem(naive_stem, to_strong=True)
+            stem = stem + 'l'
         return stem
 
     def _conjugate_present(self, verb, verb_type):
@@ -249,11 +258,11 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'ajatella'
-#     conjugator = VerbConjugator()
-#     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
-#     print(conjugation_dict)
-#     print_conjugation(conjugation_dict)
-    word = 'kyllämattimunkkitanskaruskea'
+    verb = 'puhua'
+    conjugator = VerbConjugator()
+    conjugation_dict = conjugator.conjugate_verb(verb, 'present')
+    print(conjugation_dict)
+    print_conjugation(conjugation_dict)
+    word = 'kirjoitta'
     divisor = SyllableDivisor()
     print(divisor.divide_word(word))
