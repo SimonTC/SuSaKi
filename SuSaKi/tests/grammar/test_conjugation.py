@@ -5,10 +5,13 @@ Created on Apr 28, 2016
 '''
 import pytest
 
-from susaki.grammar.conjugation import VerbConjugator, KPTChanger
+from susaki.grammar.conjugation import VerbConjugator, KPTChanger, VerbTypeDetector
 
 
-class VerbConjugatorTest:
+class TestVerbConjugator:
+
+    def __init__(self):
+        self.conjugator = VerbConjugator()
 
     def test_can_conjugate_verb_type_1_correctly_in_present_tense(self):
         assert False
@@ -26,6 +29,30 @@ class VerbConjugatorTest:
         assert False
 
     def test_can_conjugate_verb_type_6_correctly_in_present_tense(self):
+        assert False
+
+
+class TestVerbTypeDetector:
+
+    def test_can_recognize_verb_type_1(self):
+        assert False
+
+    def test_can_recognize_verb_type_2(self):
+        assert False
+
+    def test_can_recognize_verb_type_3(self):
+        assert False
+
+    def test_can_recognize_verb_type_4(self):
+        assert False
+
+    def test_can_recognize_verb_type_5(self):
+        assert False
+
+    def test_can_recognize_verb_type_6(self):
+        assert False
+
+    def test_can_deal_with_verb_type_exceptions(self):
         assert False
 
 

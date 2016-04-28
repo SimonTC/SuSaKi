@@ -148,3 +148,4 @@ local.properties
 #Misc
 *.pydevproject
 .metadata
+*~
