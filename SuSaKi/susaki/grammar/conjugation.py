@@ -61,8 +61,7 @@ class SyllableDivisor:
         return syllable_list
 
 
-class VerbConjugator():
-
+class KPTChanger():
     strong_kpt_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
                            r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
                            r'((?!([hst]))(?:k)|(?:p)|(?!s)(?:t))']
@@ -101,20 +100,11 @@ class VerbConjugator():
 
     def __init__(self):
         self._setup_weak_kpt_dict()
-        self.syllable_divisor = SyllableDivisor()
-#         with open('dict.txt', 'w') as filehandler:
-#             json.dump(self.KPT_dict_strong, filehandler)
 
     def _setup_weak_kpt_dict(self):
         """ Create the weak kpt dict as a mirror of the string kpt dict"""
         self.KPT_dict_weak = {
             value: key for key, value in self.KPT_dict_strong.items()}
-
-    def conjugate_verb(self, verb, tense):
-        """ Conjugate the verb in the given tense"""
-        verb_type = self.verb_type(verb)
-        if tense == 'present':
-            return self._conjugate_present(verb, verb_type)
 
     def _find_kpt_pattern(self, word, pattern_list):
         """ 
@@ -130,7 +120,7 @@ class VerbConjugator():
                 return match, search_pattern
         return None, None
 
-    def _extract_stem(self, naive_stem, to_strong):
+    def extract_stem(self, naive_stem, to_strong):
         """
         Extract the stem from the naive stem.
         naive_stem: the stem of a word without kpt-changes
@@ -148,7 +138,7 @@ class VerbConjugator():
             stem_type = 'weak'
 
         logger.debug(
-            'Extracting the {} infinitive stem using the naïve stem {}'.format(stem_type, naive_stem))
+            'Extracting the {} stem using the naïve stem {}'.format(stem_type, naive_stem))
         match, pattern = self._find_kpt_pattern(naive_stem, kpt_pattern_list)
         if match:
             kpt_group = match.group(0)
@@ -165,6 +155,18 @@ class VerbConjugator():
             correct_stem = naive_stem
         return correct_stem
 
+
+class VerbConjugator():
+
+    def __init__(self):
+        self.kpt_changer = KPTChanger()
+
+    def conjugate_verb(self, verb, tense):
+        """ Conjugate the verb in the given tense"""
+        verb_type = self.verb_type(verb)
+        if tense == 'present':
+            return self._conjugate_present(verb, verb_type)
+
     def _infinitive_stem(self, verb, verb_type, to_strong):
         """
         Extract the infinite stem of the verb
@@ -175,7 +177,7 @@ class VerbConjugator():
             naive_stem = verb[:-1]
             logger.debug('Naïve stem is {}'.format(naive_stem))
             if not to_strong:
-                stem = self._extract_stem(naive_stem, to_strong)
+                stem = self.kpt_changer.extract_stem(naive_stem, to_strong)
             else:
                 stem = naive_stem
         elif verb_type == 2:
@@ -184,16 +186,16 @@ class VerbConjugator():
             # We also remove the last 'l' since if we keep it it messes up the
             # KPT-changes
             naive_stem = verb[:-3]
-            stem = self._extract_stem(naive_stem, to_strong=True)
+            stem = self.kpt_changer.extract_stem(naive_stem, to_strong=True)
             stem = stem + 'l'
         elif verb_type == 4:
             naive_stem = re.sub(r't(?=.$)', '', verb)
-            stem = self._extract_stem(naive_stem, to_strong=True)
+            stem = self.kpt_changer.extract_stem(naive_stem, to_strong=True)
         elif verb_type == 5:
             stem = verb[:-1] + 'se'
         elif verb_type == 6:
             naive_stem = verb[:-2]
-            stem = self._extract_stem(naive_stem, to_strong=True)
+            stem = self.kpt_changer.extract_stem(naive_stem, to_strong=True)
             stem = stem + 'ne'
 
         return stem
