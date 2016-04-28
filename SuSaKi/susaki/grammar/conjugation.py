@@ -8,7 +8,7 @@ import re
 import logging
 from collections import namedtuple
 
-VerbTypePattern = namedtuple("VerbTypePattern", "pattern, verb_type")
+VerbTypePattern = namedtuple("VerbTypePattern", "pattern, detect_verb_type")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class SyllableDivisor:
         return syllable_list
 
 
-class KPTChanger():
+class KPTChanger:
     strong_kpt_patterns = [r'(lke|lki|rke|rki|hke|uku|yky)',
                            r'(lk|kk|tt|pp|nk|lp|rp|mp|ht|lt|rt|nt|rk)',
                            r'((?!([hst]))(?:k)|(?:p)|(?!s)(?:t))']
@@ -156,14 +156,42 @@ class KPTChanger():
         return correct_stem
 
 
+class VerbTypeDetector:
+
+    def detect_verb_type(self, verb):
+        """
+        Reads the given verb and returns the verb type.
+        Does not take irregularities into account (verbs that belong to the 'wrong' verb type.
+        The verb must be in its infinitive form.
+        Verb rules taken from http://people.uta.fi/~km56049/finnish/verbs.html
+        """
+        logger.debug('Get verb type for {}'.format(verb))
+        verb_type_pattern_list = [
+            VerbTypePattern(r'[aeiouyäö][aä]$', 1),
+            VerbTypePattern(r'd[aä]$', 2),
+            VerbTypePattern(r'(?:[lnr]|st)[aä]$', 3),
+            VerbTypePattern(r'[aouyäö]t[aä]$', 4),
+            VerbTypePattern(r'it[aä]$', 5),
+            VerbTypePattern(r'et[aä]$', 6)
+        ]
+
+        for verb_type_pattern in verb_type_pattern_list:
+            logger.debug(
+                'Checking verb type {1} using pattern {0}'.format(*verb_type_pattern))
+            if re.search(verb_type_pattern.pattern, verb):
+                return verb_type_pattern.detect_verb_type
+        return -1
+
+
 class VerbConjugator():
 
     def __init__(self):
         self.kpt_changer = KPTChanger()
+        self.verb_type_detector = VerbTypeDetector()
 
     def conjugate_verb(self, verb, tense):
         """ Conjugate the verb in the given tense"""
-        verb_type = self.verb_type(verb)
+        verb_type = self.verb_type_detector.detect_verb_type(verb)
         if tense == 'present':
             return self._conjugate_present(verb, verb_type)
 
@@ -262,30 +290,6 @@ class VerbConjugator():
 
         logger.debug(conjugation_dict)
         return conjugation_dict
-
-    def verb_type(self, verb):
-        """
-        Reads the given verb and returns the verb type.
-        Does not take irregularities into account (verbs that belong to the 'wrong' verb type.
-        The verb must be in its infinitive form.
-        Verb rules taken from http://people.uta.fi/~km56049/finnish/verbs.html
-        """
-        logger.debug('Get verb type for {}'.format(verb))
-        verb_type_pattern_list = [
-            VerbTypePattern(r'[aeiouyäö][aä]$', 1),
-            VerbTypePattern(r'd[aä]$', 2),
-            VerbTypePattern(r'(?:[lnr]|st)[aä]$', 3),
-            VerbTypePattern(r'[aouyäö]t[aä]$', 4),
-            VerbTypePattern(r'it[aä]$', 5),
-            VerbTypePattern(r'et[aä]$', 6)
-        ]
-
-        for verb_type_pattern in verb_type_pattern_list:
-            logger.debug(
-                'Checking verb type {1} using pattern {0}'.format(*verb_type_pattern))
-            if re.search(verb_type_pattern.pattern, verb):
-                return verb_type_pattern.verb_type
-        return -1
 
 
 def print_conjugation(conjugation_dict):
