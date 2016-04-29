@@ -84,11 +84,33 @@ class TestVerbTypeDetector:
 
 class TestKPTChanger:
 
-    def test_can_find_correct_strong_kpt_patterns(self):
-        assert False
+    @pytest.fixture()
+    def kpt_dictionary(self, datadir):
+        dictionary_path = '/'.join([str(datadir), 'kpt_changes_strong.yml'])
+        with open(dictionary_path) as filehandler:
+            dict_ = yaml.load(filehandler)
+        return dict_
 
-    def test_can_find_correct_weak_kpt_patterns(self):
-        assert False
+    @pytest.fixture()
+    def kpt_changer(self):
+        return KPTChanger()
+
+    def test_can_change_strong_to_weak(self, kpt_dictionary, kpt_changer):
+        for strong, weak in kpt_dictionary.items():
+            assert(kpt_changer.change_kpt(strong, to_strong=False) == weak)
+
+    def test_can_change_weak_to_strong(self, kpt_dictionary, kpt_changer):
+        for strong, weak in kpt_dictionary.items():
+            changed_word = kpt_changer.change_kpt(weak, to_strong=True)
+            if weak[-3:] in ['lje', 'rje']:
+                # Ugly as hell but currently best way to see if it deals
+                # correctly with the weak lje / rje words
+                assert('[' in changed_word)
+            elif weak == 'lue':
+                # Won't test for diabolical k here
+                pass
+            else:
+                assert(changed_word == strong)
 
     def test_can_deal_with_diabolical_k(self):
         assert False

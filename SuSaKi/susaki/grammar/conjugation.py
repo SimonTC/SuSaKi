@@ -86,9 +86,9 @@ class KPTChanger:
         'nk': 'ng',
         'mp': 'mm',
         'lp': 'lv',
-        'tp': 'rv',
         'ht': 'hd',
         'rk': 'r',
+        'rp': 'rv',
         'lke': 'lje',
         'lki': 'lje',
         'rke': 'rje',
@@ -100,32 +100,64 @@ class KPTChanger:
 
     def __init__(self):
         self._setup_weak_kpt_dict()
+        self.syllable_divisor = SyllableDivisor()
 
     def _setup_weak_kpt_dict(self):
         """ Create the weak kpt dict as a mirror of the string kpt dict"""
         self.KPT_dict_weak = {
             value: key for key, value in self.KPT_dict_strong.items()}
 
+    def _is_valid_match(self, match, syllable_list, word):
+        """
+        Validates that a match has been found and that the found 
+        KPT-change would happen on the border between the last and second-to-last
+        syllable of the word.
+        """
+        is_valid = False
+        if match:
+            word_length = len(word)
+            border_end = word_length - len(syllable_list[-1])
+            border_start = border_end - 1
+            logger.debug('The last last syllable border for {} is between {} and {}'.format(
+                word, border_start, border_end))
+            first_match_letter_id = match.start(1)
+            last_match_letter_id = match.end(1) - 1
+            if last_match_letter_id == border_start:
+                # Last letter in match just before border
+                is_valid = True
+            elif first_match_letter_id == border_end:
+                # First letter in match just after border
+                is_valid = True
+            elif first_match_letter_id <= border_start and last_match_letter_id >= border_end:
+                is_valid = True
+
+        return is_valid
+
     def _find_kpt_pattern(self, word, pattern_list):
         """ 
-        Using the prioritized list of patterns, return the first 
+        Using the prioritized list of patterns, return the first longest
         match together with its corresponding kpt_pattern.
         The letters in the match has to be near the border between the last two syllables.
         """
+        if word == 'lue':
+            print()
+        syllable_list = self.syllable_divisor.divide_word(word)
         for kpt_pattern in pattern_list:
             search_pattern = '{}{}{}'.format(
                 self.pre_pattern, kpt_pattern, self.post_pattern)
             match = re.search(search_pattern, word)
-            if match:
+            if self._is_valid_match(match, syllable_list, word):
                 return match, search_pattern
         return None, None
 
-    def extract_stem(self, naive_stem, to_strong):
+    def change_kpt(self, naive_stem, to_strong):
         """
-        Extract the stem from the naive stem.
+        Use the KPT-rules to change the naïve stem to the correct stem.
         naive_stem: the stem of a word without kpt-changes
         to_strong: boolean indicating if the naive stem should be changed from weak to strong (True)
                    or from strong to weak (False)
+        Be aware that the method can't really deal with going from weak to strong on
+        words with the weak KPT-pattern 'lje' or 'rje' since the can result in different strong KPT-patterns
         """
 
         if to_strong:
@@ -138,18 +170,27 @@ class KPTChanger:
             stem_type = 'weak'
 
         logger.debug(
-            'Extracting the {} stem using the naïve stem {}'.format(stem_type, naive_stem))
+            'Creating the {} stem of the naïve stem {}'.format(stem_type, naive_stem))
         match, pattern = self._find_kpt_pattern(naive_stem, kpt_pattern_list)
         if match:
             kpt_group = match.group(0)
             logger.debug(
                 'Found KPT-group {} using pattern {}'.format(kpt_group, pattern))
+            logger.debug(
+                'The KPT-group starts at {} and ends at {}'.format(match.start(1), match.end(1)))
             replacement = kpt_pattern_dict[kpt_group]
             logger.debug(
                 'Replacement for {} is {}'.format(kpt_group, replacement))
+            # Need to check for rje / lje since they can have to strong
+            # counterparts which cannot be known beforehand
+            if kpt_group == 'rje':
+                replacement = '[rke/rki]'
+            elif kpt_group == 'lje':
+                replacement = '[lke/lki]'
             correct_stem = re.sub(pattern, replacement, naive_stem)
             logger.debug(
                 'The correct stem of {} is {}'.format(naive_stem, correct_stem))
+
         else:
             logger.debug('No kpt-changes in {}'.format(naive_stem))
             correct_stem = naive_stem
@@ -205,7 +246,7 @@ class VerbConjugator():
             naive_stem = verb[:-1]
             logger.debug('Naïve stem is {}'.format(naive_stem))
             if not to_strong:
-                stem = self.kpt_changer.extract_stem(naive_stem, to_strong)
+                stem = self.kpt_changer.change_kpt(naive_stem, to_strong)
             else:
                 stem = naive_stem
         elif verb_type == 2:
@@ -214,16 +255,16 @@ class VerbConjugator():
             # We also remove the last 'l' since if we keep it it messes up the
             # KPT-changes
             naive_stem = verb[:-3]
-            stem = self.kpt_changer.extract_stem(naive_stem, to_strong=True)
+            stem = self.kpt_changer.change_kpt(naive_stem, to_strong=True)
             stem = stem + 'l'
         elif verb_type == 4:
             naive_stem = re.sub(r't(?=.$)', '', verb)
-            stem = self.kpt_changer.extract_stem(naive_stem, to_strong=True)
+            stem = self.kpt_changer.change_kpt(naive_stem, to_strong=True)
         elif verb_type == 5:
             stem = verb[:-1] + 'se'
         elif verb_type == 6:
             naive_stem = verb[:-2]
-            stem = self.kpt_changer.extract_stem(naive_stem, to_strong=True)
+            stem = self.kpt_changer.change_kpt(naive_stem, to_strong=True)
             stem = stem + 'ne'
 
         return stem
@@ -298,10 +339,10 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    verb = 'puhua'
-    conjugator = VerbConjugator()
-    conjugation_dict = conjugator.conjugate_verb(verb, 'present')
-    print_conjugation(conjugation_dict)
-#     word = 'kirjoitta'
-#     divisor = SyllableDivisor()
-#     print(divisor.divide_word(word))
+    #     verb = 'puhua'
+    #     conjugator = VerbConjugator()
+    #     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
+    #     print_conjugation(conjugation_dict)
+    word = 'aikoa'
+    divisor = SyllableDivisor()
+    print(divisor.divide_word(word))
