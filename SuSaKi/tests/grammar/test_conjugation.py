@@ -5,11 +5,12 @@ Created on Apr 28, 2016
 '''
 import pytest
 import yaml
+import collections
 
 import os
 from distutils import dir_util
 
-from susaki.grammar.conjugation import VerbConjugator, KPTChanger, VerbTypeDetector
+from susaki.grammar.conjugation import VerbConjugator, KPTChanger, VerbTypeDetector, SyllableDivisor
 
 
 @pytest.fixture
@@ -91,3 +92,17 @@ class TestKPTChanger:
 
     def test_can_deal_with_diabolical_k(self):
         assert False
+
+
+class TestSyllableDivisor:
+
+    def test_can_divide_words_correctly(self, datadir):
+        syllable_dict_path = '/'.join([str(datadir), 'syllables.yml'])
+        with open(syllable_dict_path) as filehandler:
+            syllable_dict = yaml.load(filehandler)
+
+        divisor = SyllableDivisor()
+
+        for word, syllables in syllable_dict.items():
+            assert(collections.Counter(syllables) ==
+                   collections.Counter(divisor.divide_word(word)))
