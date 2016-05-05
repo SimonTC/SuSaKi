@@ -350,7 +350,7 @@ class VerbConjugator():
             conjugation_dict = self._create_conjugation_dict(
                 weak_stem, '', he_end)
             conjugation_dict['hän'] = strong_stem + strong_stem[-1]
-            conjugation_dict['he_end'] = strong_stem + he_end
+            conjugation_dict['he'] = strong_stem + he_end
 
         elif verb_type == 2:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
