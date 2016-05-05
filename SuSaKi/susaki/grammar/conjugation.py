@@ -395,6 +395,6 @@ if __name__ == '__main__':
     #     conjugator = VerbConjugator()
     #     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     #     print_conjugation(conjugation_dict)
-    word = 'pyyhkiä'
+    word = 'pane'
     divisor = SyllableDivisor()
     print(divisor.divide_word(word))
