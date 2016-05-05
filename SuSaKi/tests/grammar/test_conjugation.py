@@ -52,7 +52,7 @@ class TestVerbConjugator:
         for verb, conjugation_dict in type_dict.items():
             observed_conjugation = verb_conjugator.conjugate_verb(
                 verb, 'present')
-            for key, value in conjugation_dict:
+            for key, value in conjugation_dict.items():
                 assert value == observed_conjugation[key]
 
 

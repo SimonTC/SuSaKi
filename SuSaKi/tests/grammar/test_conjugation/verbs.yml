@@ -16,7 +16,7 @@
    lukea:
       minä: luen
       sinä: luet
-      hän: lukeaa
+      hän: lukee
       me: luemme
       te: luette
       he: lukevat
@@ -55,7 +55,7 @@
       hän: imuroi
       me: imuroimme
       te: imuroitte
-      he: imuroivät
+      he: imuroivat
 3: 
    ajatella:
       minä: ajattelen
