@@ -137,7 +137,9 @@ class KPTChanger:
                 word, border_start, border_end))
             first_match_letter_id = match.start(1)
             last_match_letter_id = match.end(1) - 1
-            if last_match_letter_id == border_start:
+            if len(syllable_list) == 1:
+                is_valid = False
+            elif last_match_letter_id == border_start:
                 # Last letter in match just before border
                 is_valid = True
             elif first_match_letter_id == border_end:
@@ -152,6 +154,7 @@ class KPTChanger:
         """ 
         Using the prioritized list of patterns, return the first longest
         match together with its corresponding kpt_pattern.
+        If the last letter in the word is a consonant, this letter is removed before looking for kpt-patterns.
         The letters in the match has to be near the border between the last two syllables.
         """
         syllable_list = self.syllable_divisor.divide_word(word)
@@ -163,24 +166,25 @@ class KPTChanger:
                 return match, search_pattern
         return None, None
 
-    def _get_diabolical_k_stem(self, naive_stem, to_strong):
+    def _get_diabolical_k_stem(self, word, to_strong):
         """ 
         Check to see of the stem could be influenced by the diabolical k.
         If so the correct stem is returned. Otherwise None is returned
         """
         try:
             if to_strong:
-                correct_stem = self.diabolical_k_to_strong_dict[naive_stem]
+                correct_stem = self.diabolical_k_to_strong_dict[word]
             else:
-                correct_stem = self.diabolical_k_to_weak_dict[naive_stem]
+                correct_stem = self.diabolical_k_to_weak_dict[word]
         except KeyError:
             return None
         else:
             return correct_stem
 
-    def change_kpt(self, naive_stem, to_strong):
+    def change_kpt(self, word, naive_stem, to_strong):
         """
         Use the KPT-rules to change the naïve stem to the correct stem.
+        word: the word which will have kpt-changes performed
         naive_stem: the stem of a word without kpt-changes
         to_strong: boolean indicating if the naive stem should be changed from weak to strong (True)
                    or from strong to weak (False)
@@ -200,9 +204,10 @@ class KPTChanger:
         logger.debug(
             'Creating the {} stem of the naïve stem {}'.format(stem_type, naive_stem))
 
-        correct_stem = self._get_diabolical_k_stem(naive_stem, to_strong)
+        correct_stem = self._get_diabolical_k_stem(word, to_strong)
+
         if correct_stem:
-            logger.debug('The naïve stem is influenced by the diabolical k.')
+            logger.debug('The word is influenced by the diabolical k.')
         else:
             match, pattern = self._find_kpt_pattern(
                 naive_stem, kpt_pattern_list)
@@ -226,6 +231,7 @@ class KPTChanger:
             else:
                 logger.debug('No kpt-changes in {}'.format(naive_stem))
                 correct_stem = naive_stem
+
         logger.debug(
             'The correct stem of {} is {}'.format(naive_stem, correct_stem))
         return correct_stem
@@ -289,7 +295,7 @@ class VerbConjugator():
             naive_stem = verb[:-1]
             logger.debug('Naïve stem is {}'.format(naive_stem))
             if not to_strong:
-                stem = self.kpt_changer.change_kpt(naive_stem, to_strong)
+                stem = self.kpt_changer.change_kpt(verb, naive_stem, to_strong)
             else:
                 stem = naive_stem
         elif verb_type == 2:
@@ -297,17 +303,28 @@ class VerbConjugator():
         elif verb_type == 3:
             # We also remove the last 'l' since if we keep it it messes up the
             # KPT-changes
-            naive_stem = verb[:-3]
-            stem = self.kpt_changer.change_kpt(naive_stem, to_strong=True)
-            stem = stem + 'l'
+            naive_stem = verb[:-2]
+            last_letter = naive_stem[-1]
+            if last_letter in set(consonants) - {'s'}:
+                naive_stem = naive_stem[:-1]
+                removed_last_letter = True
+            else:
+                removed_last_letter = False
+            stem = self.kpt_changer.change_kpt(
+                verb, naive_stem, to_strong=True)
+            if removed_last_letter:
+                stem += last_letter
+            stem = stem + 'e'
         elif verb_type == 4:
             naive_stem = re.sub(r't(?=.$)', '', verb)
-            stem = self.kpt_changer.change_kpt(naive_stem, to_strong=True)
+            stem = self.kpt_changer.change_kpt(
+                verb, naive_stem, to_strong=True)
         elif verb_type == 5:
             stem = verb[:-1] + 'se'
         elif verb_type == 6:
             naive_stem = verb[:-2]
-            stem = self.kpt_changer.change_kpt(naive_stem, to_strong=True)
+            stem = self.kpt_changer.change_kpt(
+                verb, naive_stem, to_strong=True)
             stem = stem + 'ne'
 
         return stem
@@ -359,7 +376,7 @@ class VerbConjugator():
         elif verb_type == 3:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
             conjugation_dict = self._create_conjugation_dict(
-                stem + 'e', 'e', he_end)
+                stem, 'e', he_end)
 
         elif verb_type == 4:
             stem = self._infinitive_stem(verb, verb_type, to_strong=True)
@@ -391,10 +408,10 @@ def print_conjugation(conjugation_dict):
     print(string)
 
 if __name__ == '__main__':
-    #     verb = 'puhua'
-    #     conjugator = VerbConjugator()
-    #     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
-    #     print_conjugation(conjugation_dict)
-    word = 'pane'
+    verb = 'pestä'
+    conjugator = VerbConjugator()
+    conjugation_dict = conjugator.conjugate_verb(verb, 'present')
+    print_conjugation(conjugation_dict)
+    word = 'tava'
     divisor = SyllableDivisor()
     print(divisor.divide_word(word))

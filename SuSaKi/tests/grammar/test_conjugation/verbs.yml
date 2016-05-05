@@ -48,7 +48,7 @@
       hän: vie
       me: viemme
       te: viette
-      he: vievat
+      he: vievät
    imuroida:
       minä: imuroin
       sinä: imuroit
@@ -70,7 +70,7 @@
       hän: esittelee
       me: esittelemme
       te: esittelette
-      he: esittelevat
+      he: esittelevät
    purra:
       minä: puren
       sinä: puret
@@ -91,7 +91,7 @@
       hän: menee
       me: menemme
       te: menette
-      he: menevat
+      he: menevät
    panna:
       minä: panen
       sinä: panet
@@ -104,7 +104,7 @@
       sinä: peset
       hän: pesee
       me: pesemme
-      te: peseitte
+      te: pesette
       he: pesevät
    oikaista:
       minä: oikaisen
@@ -206,5 +206,5 @@
       hän: pitenee
       me: pitenemme
       te: pitenette
-      he: pitenevat
+      he: pitenevät
 
