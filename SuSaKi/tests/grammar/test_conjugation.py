@@ -32,23 +32,28 @@ def datadir(tmpdir, request):
 
 class TestVerbConjugator:
 
-    def test_can_conjugate_verb_type_1_correctly_in_present_tense(self):
-        assert False
+    @pytest.fixture()
+    def verb_dictionary(self, datadir):
+        verb_type_path = '/'.join([str(datadir), 'verbs.yml'])
+        with open(verb_type_path) as filehandler:
+            dict_ = yaml.load(filehandler)
+        return dict_
 
-    def test_can_conjugate_verb_type_2_correctly_in_present_tense(self):
-        assert False
+    @pytest.fixture()
+    def verb_conjugator(self):
+        return VerbConjugator()
 
-    def test_can_conjugate_verb_type_3_correctly_in_present_tense(self):
-        assert False
+    @pytest.fixture(params=[1, 2, 3, 4, 5, 6])
+    def type_dict(self, verb_dictionary, request):
+        type_dict = verb_dictionary[request.param]
+        return type_dict
 
-    def test_can_conjugate_verb_type_4_correctly_in_present_tense(self):
-        assert False
-
-    def test_can_conjugate_verb_type_5_correctly_in_present_tense(self):
-        assert False
-
-    def test_can_conjugate_verb_type_6_correctly_in_present_tense(self):
-        assert False
+    def test_can_conjugate_verb_types_correctly_in_present_tense(self, verb_conjugator, type_dict):
+        for verb, conjugation_dict in type_dict.items():
+            observed_conjugation = verb_conjugator.conjugate_verb(
+                verb, 'present')
+            for key, value in conjugation_dict:
+                assert value == observed_conjugation[key]
 
 
 class TestVerbTypeDetector:
@@ -112,7 +117,10 @@ class TestKPTChanger:
             else:
                 assert(changed_word == strong)
 
-    def test_can_deal_with_diabolical_k(self):
+    def test_can_deal_with_strong_to_weak_diabolical_k(self):
+        assert False
+
+    def test_can_deal_with_weak_to_strong_diabolical_k(self):
         assert False
 
 
