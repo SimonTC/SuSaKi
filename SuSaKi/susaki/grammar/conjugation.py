@@ -5,8 +5,11 @@ Created on Apr 22, 2016
 '''
 
 import re
+import os
 import logging
 from collections import namedtuple
+
+import yaml
 
 VerbTypePattern = namedtuple("VerbTypePattern", "pattern, detect_verb_type")
 logging.basicConfig(level=logging.DEBUG)
@@ -101,6 +104,18 @@ class KPTChanger:
     def __init__(self):
         self._setup_weak_kpt_dict()
         self.syllable_divisor = SyllableDivisor()
+        self.diabolical_k_to_weak_dict = self._load_dict(
+            'diabolical_k_to_weak')
+        self.diabolical_k_to_strong_dict = self._load_dict(
+            'diabolical_k_to_strong')
+
+    def _load_dict(self, dict_name):
+        """Loads the given yml dict saved in the grammar/data folder"""
+        this_dir, _ = os.path.split(__file__)
+        dict_path = os.path.join(this_dir, "data", "{}.yml".format(dict_name))
+        with open(dict_path) as file_handler:
+            _dict = yaml.load(file_handler)
+        return _dict
 
     def _setup_weak_kpt_dict(self):
         """ Create the weak kpt dict as a mirror of the string kpt dict"""
@@ -139,8 +154,6 @@ class KPTChanger:
         match together with its corresponding kpt_pattern.
         The letters in the match has to be near the border between the last two syllables.
         """
-        if word == 'lue':
-            print()
         syllable_list = self.syllable_divisor.divide_word(word)
         for kpt_pattern in pattern_list:
             search_pattern = '{}{}{}'.format(
@@ -149,6 +162,21 @@ class KPTChanger:
             if self._is_valid_match(match, syllable_list, word):
                 return match, search_pattern
         return None, None
+
+    def _get_diabolical_k_stem(self, naive_stem, to_strong):
+        """ 
+        Check to see of the stem could be influenced by the diabolical k.
+        If so the correct stem is returned. Otherwise None is returned
+        """
+        try:
+            if to_strong:
+                correct_stem = self.diabolical_k_to_strong_dict[naive_stem]
+            else:
+                correct_stem = self.diabolical_k_to_weak_dict[naive_stem]
+        except KeyError:
+            return None
+        else:
+            return correct_stem
 
     def change_kpt(self, naive_stem, to_strong):
         """
@@ -171,29 +199,35 @@ class KPTChanger:
 
         logger.debug(
             'Creating the {} stem of the naïve stem {}'.format(stem_type, naive_stem))
-        match, pattern = self._find_kpt_pattern(naive_stem, kpt_pattern_list)
-        if match:
-            kpt_group = match.group(0)
-            logger.debug(
-                'Found KPT-group {} using pattern {}'.format(kpt_group, pattern))
-            logger.debug(
-                'The KPT-group starts at {} and ends at {}'.format(match.start(1), match.end(1)))
-            replacement = kpt_pattern_dict[kpt_group]
-            logger.debug(
-                'Replacement for {} is {}'.format(kpt_group, replacement))
-            # Need to check for rje / lje since they can have to strong
-            # counterparts which cannot be known beforehand
-            if kpt_group == 'rje':
-                replacement = '[rke/rki]'
-            elif kpt_group == 'lje':
-                replacement = '[lke/lki]'
-            correct_stem = re.sub(pattern, replacement, naive_stem)
-            logger.debug(
-                'The correct stem of {} is {}'.format(naive_stem, correct_stem))
 
+        correct_stem = self._get_diabolical_k_stem(naive_stem, to_strong)
+        if correct_stem:
+            logger.debug('The naïve stem is influenced by the diabolical k.')
         else:
-            logger.debug('No kpt-changes in {}'.format(naive_stem))
-            correct_stem = naive_stem
+            match, pattern = self._find_kpt_pattern(
+                naive_stem, kpt_pattern_list)
+            if match:
+                kpt_group = match.group(0)
+                logger.debug(
+                    'Found KPT-group {} using pattern {}'.format(kpt_group, pattern))
+                logger.debug(
+                    'The KPT-group starts at {} and ends at {}'.format(match.start(1), match.end(1)))
+                replacement = kpt_pattern_dict[kpt_group]
+                logger.debug(
+                    'Replacement for {} is {}'.format(kpt_group, replacement))
+                # Need to check for rje / lje since they can have to strong
+                # counterparts which cannot be known beforehand
+                if kpt_group == 'rje':
+                    replacement = '[rke/rki]'
+                elif kpt_group == 'lje':
+                    replacement = '[lke/lki]'
+                correct_stem = re.sub(pattern, replacement, naive_stem)
+
+            else:
+                logger.debug('No kpt-changes in {}'.format(naive_stem))
+                correct_stem = naive_stem
+        logger.debug(
+            'The correct stem of {} is {}'.format(naive_stem, correct_stem))
         return correct_stem
 
 
@@ -229,6 +263,15 @@ class VerbConjugator():
     def __init__(self):
         self.kpt_changer = KPTChanger()
         self.verb_type_detector = VerbTypeDetector()
+        self.irregular_verbs_dict = self._load_dict('irregular_verbs')
+
+    def _load_dict(self, dict_name):
+        """Loads the given yml dict saved in the grammar/data folder"""
+        this_dir, _ = os.path.split(__file__)
+        dict_path = os.path.join(this_dir, "data", "{}.yml".format(dict_name))
+        with open(dict_path) as file_handler:
+            _dict = yaml.load(file_handler)
+        return _dict
 
     def conjugate_verb(self, verb, tense):
         """ Conjugate the verb in the given tense"""
@@ -287,6 +330,15 @@ class VerbConjugator():
     def _conjugate_present(self, verb, verb_type):
         """Conjugate the given verb in its present form"""
         conjugation_dict = {}
+
+        try:
+            conjugation_dict = self.irregular_verbs_dict[verb]
+        except KeyError:
+            pass
+        else:
+            logger.debug(conjugation_dict)
+            return conjugation_dict
+
         if self._letters_exists_in_word({'a', 'o', 'u'}, verb):
             he_end = 'vat'
         else:
@@ -343,6 +395,6 @@ if __name__ == '__main__':
     #     conjugator = VerbConjugator()
     #     conjugation_dict = conjugator.conjugate_verb(verb, 'present')
     #     print_conjugation(conjugation_dict)
-    word = 'aikoa'
+    word = 'pyyhkiä'
     divisor = SyllableDivisor()
     print(divisor.divide_word(word))
