@@ -95,6 +95,52 @@ class RestfulConnector(Connector):
         return article
 
 
+class HTMLConnector(Connector):
+
+    def __init__(self, language):
+        super().__init__(language)
+
+    def _collect_page(self, word):
+        """Collects the html page for the given word"""
+        url = 'https://en.wiktionary.org/wiki/Special:Search?search={}&go=Try+exact+match'.format(
+            word)
+#         url = 'https://en.wiktionary.org/wiki/{}'.format(
+#             word)
+        req = requests.get(url)
+        return req
+
+    def collect_article(self, word):
+        # Collect html page
+        req = self._collect_page(word)
+        # Test for bad response. Raises HTTPError if page doesn't exist
+        # req.raise_for_status()
+        soup = BeautifulSoup(req.content, 'html.parser')
+        content = soup.body.find('div', id='content')
+        heading = content.find('h1', id='firstHeading')
+        article_content = content.find('div', id='mw-content-text')
+
+        if heading.string == 'Search results':
+            # Check to see if they have any recommendations
+            search_results = article_content.select(
+                '[class~=searchresults]')[0]
+            if search_results.select('[class~=mw-search-nonefound]'):
+                print('I have no idea what you are looking for')
+            else:
+                suggestions = search_results.select(
+                    '[class~=mw-search-results]')[0]
+                suggested_words = []
+                for li in suggestions.find_all('li'):
+                    suggestion = li.select(
+                        '[class~=mw-search-result-heading]')[0]
+                    suggested_words.append(suggestion.next_element.string)
+                print('"{}" does not have its own page, but you can check these pages:'.format(
+                    word))
+                print(', '.join(suggested_words))
+        else:
+            # Page exists
+            print("Yay! We have a page about {}".format(word))
+
+
 class RawConnector(Connector):
 
     def __init__(self, language):
@@ -162,3 +208,10 @@ class RawConnector(Connector):
             article.add_definition(definition)
 
         return article
+
+
+if __name__ == '__main__':
+    collector = HTMLConnector('fi')
+    word = 'sää'
+#     word = 'hkjhk'
+    collector.collect_article(word)
