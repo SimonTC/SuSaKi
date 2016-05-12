@@ -6,6 +6,9 @@ Created on Apr 21, 2016
 
 
 class Article:
+    """
+    The article holds all the information about a single word in a given language
+    """
 
     def __init__(self, word, language):
         self.word = word
@@ -17,8 +20,14 @@ class Article:
 
 
 class Definition:
+    """
+    One definition of a word.
+    """
 
     def __init__(self, pos):
+        """
+        pos: Part of speech (fx Noun, adjective)
+        """
         self.pos = pos
         self.explanations = []
 
@@ -27,6 +36,9 @@ class Definition:
 
 
 class Explanation:
+    """
+    A single explanation (translation) of a word.
+    """
 
     def __init__(self, explanation):
         self.explanation = explanation
