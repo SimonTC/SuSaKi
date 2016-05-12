@@ -29,16 +29,16 @@ class Definition:
 
     def __init__(self, pos):
         self.pos = pos
-        self.explanations = []
+        self.translations = []
 
-    def add_explanation(self, explanation):
-        self.explanations.append(explanation)
+    def add_translation(self, translation):
+        self.translations.append(translation)
 
 
-class Explanation:
+class Translation:
 
-    def __init__(self, explanation):
-        self.explanation = explanation
+    def __init__(self, translation):
+        self.translation = translation
         self.examples = []
 
     def add_example(self, example):
@@ -100,14 +100,14 @@ class RestfulConnector(Connector):
         definition_elements = definition_dict['definitions']
         for element in definition_elements:
             explanation_text = self._clean_line(element['definition'])
-            explanation = Explanation(explanation_text)
+            explanation = Translation(explanation_text)
             try:
                 examples = element['examples']
                 for example in examples:
                     explanation.add_example(self._clean_line(example))
             except KeyError:
                 pass
-            definition.add_explanation(explanation)
+            definition.add_translation(explanation)
 
         return definition
 
@@ -156,8 +156,8 @@ class Wiktionary:
         print()
         for definition in article.definitions:
             print(definition.pos)
-            for explanation in definition.explanations:
-                print("  " + explanation.explanation)
+            for explanation in definition.translations:
+                print("  " + explanation.translation)
             print()
 
     def process_user_query(self, word):

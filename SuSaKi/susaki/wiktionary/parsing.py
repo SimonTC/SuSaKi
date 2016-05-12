@@ -29,19 +29,19 @@ class Definition:
         pos: Part of speech (fx Noun, adjective)
         """
         self.pos = pos
-        self.explanations = []
+        self.translations = []
 
-    def add_explanation(self, explanation):
-        self.explanations.append(explanation)
+    def add_translation(self, translation):
+        self.translations.append(translation)
 
 
-class Explanation:
+class Translation:
     """
-    A single explanation (translation) of a word.
+    A single translation of a word.
     """
 
-    def __init__(self, explanation):
-        self.explanation = explanation
+    def __init__(self, translation):
+        self.translation = translation
         self.examples = []
 
     def add_example(self, example):

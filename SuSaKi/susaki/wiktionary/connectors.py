@@ -9,7 +9,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from susaki.wiktionary.parsing import Article, Definition, Explanation
+from susaki.wiktionary.parsing import Article, Definition, Translation
 from requests.exceptions import HTTPError
 
 
@@ -68,14 +68,14 @@ class RestfulConnector(Connector):
         definition_elements = definition_dict['definitions']
         for element in definition_elements:
             explanation_text = self._clean_line(element['definition'])
-            explanation = Explanation(explanation_text)
+            explanation = Translation(explanation_text)
             try:
                 examples = element['examples']
                 for example in examples:
                     explanation.add_example(self._clean_line(example))
             except KeyError:
                 pass
-            definition.add_explanation(explanation)
+            definition.add_translation(explanation)
 
         return definition
 
@@ -183,14 +183,14 @@ class RawConnector(Connector):
         definition_elements = definition_dict['definitions']
         for element in definition_elements:
             explanation_text = self._clean_line(element['definition'])
-            explanation = Explanation(explanation_text)
+            explanation = Translation(explanation_text)
             try:
                 examples = element['examples']
                 for example in examples:
                     explanation.add_example(self._clean_line(example))
             except KeyError:
                 pass
-            definition.add_explanation(explanation)
+            definition.add_translation(explanation)
 
         return definition
 

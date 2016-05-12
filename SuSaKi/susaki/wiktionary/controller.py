@@ -39,8 +39,8 @@ class Wiktionary:
         print()
         for definition in article.definitions:
             print(definition.pos)
-            for explanation in definition.explanations:
-                print("  " + explanation.explanation)
+            for explanation in definition.translations:
+                print("  " + explanation.translation)
             print()
 
     def process_user_query(self, word):
