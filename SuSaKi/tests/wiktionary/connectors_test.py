@@ -17,6 +17,9 @@ class HTMLConnectorTest:
     def test_returns_article_when_word_has_an_article(self):
         assert False
 
+# Following tests should be in other class since they are about the
+# parsing of the page and not retrieval
+
     def test_only_returns_article_in_correct_target_language(self):
         assert False
 
