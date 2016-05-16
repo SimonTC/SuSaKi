@@ -16,7 +16,7 @@ class Parser(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def parse_article(self, raw_article, word):
-        """Parse the raw article and return a Article object 
+        """Parse the raw article and return a dictionary object 
         containing all information from the article"""
         raise NotImplementedError
 
@@ -81,8 +81,24 @@ class RestfulParser(Parser):
 
 class HTMLParser(Parser):
 
+    def __init__(self, language):
+        super().__init__(language)
+        self.dictionary = {'language': language}
+
+    def _extract_correct_language_part(self, raw_article):
+        raise NotImplementedError
+
+    def _extract_etymologies(self, article):
+        raise NotImplementedError
+
+    def _extract_POS_parts(self, etymology):
+        raise NotImplementedError
+
+    def _parse_POS(self, pos):
+        raise NotImplementedError
+
     def parse_article(self, raw_article, word):
-        return None
+        return self.dictionary
 
 
 class Article:
