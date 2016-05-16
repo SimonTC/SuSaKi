@@ -24,6 +24,7 @@ class Connector(metaclass=abc.ABCMeta):
            Returns a HTTPError if the page doesn't exists.
            Returns a LookupError if the page does exists but no definitions exists for the given word
            in the target language """
+        raise NotImplementedError
 
 
 class RestfulConnector(Connector):
@@ -61,8 +62,6 @@ class HTMLConnector(Connector):
     def collect_raw_article(self, word):
         # Collect html page
         req = self._collect_page(word)
-        # Test for bad response. Raises HTTPError if page doesn't exist
-        # req.raise_for_status()
         soup = BeautifulSoup(req.content, 'html.parser')
         content = soup.body.find('div', id='content')
         heading = content.find('h1', id='firstHeading')

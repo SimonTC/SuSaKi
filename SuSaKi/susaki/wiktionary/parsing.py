@@ -18,6 +18,7 @@ class Parser(metaclass=abc.ABCMeta):
     def parse_article(self, raw_article, word):
         """Parse the raw article and return a Article object 
         containing all information from the article"""
+        raise NotImplementedError
 
 
 class RestfulParser(Parser):
