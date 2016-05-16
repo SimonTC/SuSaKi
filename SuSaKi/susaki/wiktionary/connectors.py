@@ -54,8 +54,6 @@ class HTMLConnector(Connector):
         """Collects the html page for the given word"""
         url = 'https://en.wiktionary.org/wiki/Special:Search?search={}&go=Try+exact+match'.format(
             word)
-#         url = 'https://en.wiktionary.org/wiki/{}'.format(
-#             word)
         req = requests.get(url)
         return req
 
