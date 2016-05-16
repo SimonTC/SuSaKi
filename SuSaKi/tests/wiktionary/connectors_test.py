@@ -9,6 +9,9 @@ import requests
 import os
 from distutils import dir_util
 
+from susaki.wiktionary.connectors import HTMLConnector
+from _pytest.monkeypatch import monkeypatch
+
 
 @pytest.fixture
 def datadir(tmpdir, request):
@@ -29,10 +32,16 @@ def datadir(tmpdir, request):
 
 class HTMLConnectorTest:
 
-    def test_returns_error_when_word_is_completely_unknown(self, datadir):
+    @pytest.fixture
+    def connector(self):
+        return HTMLConnector('Finnish')
+
+    def test_returns_error_when_word_is_completely_unknown(self, connector, datadir):
         def mock_unknown_page(word):
-            req = requests.get()
-        assert False
+            page_path = '/'.join([str(datadir), 'no_result.html'])
+            return requests.get(page_path)
+        monkeypatch.setattr(HTMLConnector, '_collect_page', mock_unknown_page)
+        assert connector.collect_raw_article('sää') == False
 
     def test_returns_suggestions_when_the_word_doesnt_have_an_article_but_exists_in_other_article(self):
         assert False
