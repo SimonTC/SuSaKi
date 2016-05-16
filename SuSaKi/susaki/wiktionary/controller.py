@@ -7,6 +7,7 @@ Created on Apr 20, 2016
 import argparse
 from collections import defaultdict
 from susaki.wiktionary.connectors import RestfulConnector
+from susaki.wiktionary.parsing import RestfulParser
 from requests.exceptions import HTTPError
 
 
@@ -16,6 +17,7 @@ class Wiktionary:
         self.language = language
         self._setup_command_dict()
         self.connector = RestfulConnector(language)
+        self.parser = RestfulParser(language)
 
     def _setup_command_dict(self):
         self.command_dict = defaultdict(lambda: self.process_user_query)
@@ -45,7 +47,8 @@ class Wiktionary:
 
     def process_user_query(self, word):
         try:
-            article = self.connector.collect_article(word)
+            raw_article = self.connector.collect_raw_article(word)
+            article = self.parser.parse_article(raw_article, word)
         except HTTPError:
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))
