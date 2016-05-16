@@ -60,6 +60,12 @@ class HTMLConnector(Connector):
         return req
 
     def collect_raw_article(self, word):
+        """ 
+        Will return the HTML page if an article for the given word exists.
+        If no page exists, but the word does exist in other articles a list of the names of these articles is returned.
+        If The word doesn't exist on Wiktionary a KeyError excpetion is raised
+        """
+
         # Collect html page
         req = self._collect_page(word)
         soup = BeautifulSoup(req.content, 'html.parser')
@@ -72,7 +78,8 @@ class HTMLConnector(Connector):
             search_results = article_content.select(
                 '[class~=searchresults]')[0]
             if search_results.select('[class~=mw-search-nonefound]'):
-                print('I have no idea what you are looking for')
+                raise KeyError(
+                    'The word {} does not exist on Wiktionary'.format(word))
             else:
                 suggestions = search_results.select(
                     '[class~=mw-search-results]')[0]
@@ -81,12 +88,10 @@ class HTMLConnector(Connector):
                     suggestion = li.select(
                         '[class~=mw-search-result-heading]')[0]
                     suggested_words.append(suggestion.next_element.string)
-                print('"{}" does not have its own page, but you can check these pages:'.format(
-                    word))
-                print(', '.join(suggested_words))
+                return suggested_words
         else:
             # Page exists
-            print("Yay! We have a page about {}".format(word))
+            return req
 
 if __name__ == '__main__':
     collector = HTMLConnector('fi')
