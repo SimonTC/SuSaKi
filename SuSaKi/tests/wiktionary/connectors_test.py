@@ -4,11 +4,34 @@ Created on May 12, 2016
 @author: simon
 '''
 import pytest
+import requests
+
+import os
+from distutils import dir_util
+
+
+@pytest.fixture
+def datadir(tmpdir, request):
+    '''
+    Fixture responsible for searching a folder with the same name of test
+    module and, if available, moving all contents to a temporary directory so
+    tests can use them freely.
+    Source: http://stackoverflow.com/a/29631801
+    '''
+    filename = request.module.__file__
+    test_dir, _ = os.path.splitext(filename)
+
+    if os.path.isdir(test_dir):
+        dir_util.copy_tree(test_dir, str(tmpdir))
+
+    return tmpdir
 
 
 class HTMLConnectorTest:
 
-    def test_returns_error_when_word_is_completely_unknown(self):
+    def test_returns_error_when_word_is_completely_unknown(self, datadir):
+        def mock_unknown_page(word):
+            req = requests.get()
         assert False
 
     def test_returns_suggestions_when_the_word_doesnt_have_an_article_but_exists_in_other_article(self):
