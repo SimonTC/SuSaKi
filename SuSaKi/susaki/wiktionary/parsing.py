@@ -6,6 +6,8 @@ Created on Apr 21, 2016
 import abc
 import re
 
+import requests
+
 import logging
 
 from bs4 import BeautifulSoup
@@ -89,22 +91,25 @@ class HTMLParser(Parser):
         super().__init__(language)
         self.dictionary = {'language': language}
 
-    def _extract_text_until(self, target_language, to_tag, soup):
+    def _extract_text_until(self, from_tag, to_tag, soup):
         """
         Extract all tags between the from and to tags in the given soup.
         """
         start_extracting = False
-        new_soup = BeautifulSoup('html.parser')
-        next_tag = soup.contents[0]
-        while True:
-            if start_extracting:
-                new_soup.append(next_tag)
-            # Go next twice to avoid line breaks
-            next_tag = next_tag.next_sibling.next_sibling
-            if next_tag == to_tag:
-                return new_soup
-            elif next_tag.find(id=target_language):
+        text = str(soup)
+        text_array = text.split('\n')
+        text_to_extract = ''
+        from_tag_text = str(from_tag)
+        to_tag_text = str(to_tag)
+        for line in text_array:
+            if from_tag_text in line:
                 start_extracting = True
+            elif to_tag_text in line:
+                soup = BeautifulSoup(text_to_extract, 'html.parser')
+                logging.debug(soup.prettify())
+                return text_to_extract
+            if start_extracting:
+                text_to_extract += line + '\n'
 
     def _extract_language_part_border(self, language_tags, target_language):
         has_seen_target_language = False
@@ -123,7 +128,7 @@ class HTMLParser(Parser):
         from_tag = raw_article.find_all('span', id=target_language)[0]
         to_tag = self._extract_language_part_border(
             raw_article.find_all('h2'), target_language)
-        text = self._extract_text_until(target_language, to_tag, raw_article)
+        text = self._extract_text_until(from_tag, to_tag, raw_article)
         soup = BeautifulSoup(text, 'html.parser')
 
         return soup
@@ -199,3 +204,9 @@ class Translation:
 
     def add_example(self, example):
         self.examples.append(example)
+
+if __name__ == '__main__':
+    url = 'https://en.wiktionary.org/wiki/kuu'
+    parser = HTMLParser('Finnish')
+    req = requests.get(url)
+    parser.parse_article(req, 'kuu')
