@@ -10,6 +10,8 @@ import requests
 from requests_file import FileAdapter
 from susaki.wiktionary.parsing import HTMLParser, Article
 
+from bs4 import BeautifulSoup
+
 
 @pytest.fixture
 def datadir(tmpdir, request):
@@ -45,7 +47,16 @@ class TestHTMLParser:
         result = parser.parse_article(raw_article, 'kuu')
         assert isinstance(result, dict)
 
-    def test_only_returns_article_in_correct_target_language(self):
+    def test_only_returns_article_in_correct_target_language(self, parser, raw_article):
+        soup = BeautifulSoup(raw_article.content, 'html.parser')
+        text_content = parser._extract_article_text(soup)
+        language_part = parser._extract_correct_language_part(text_content)
+        assert language_part.find(id='Finnish')
+        assert not language_part.find(id='Estonian')
+        assert not language_part.find(id='Ingrian')
+        assert not language_part.find(id='Votic')
+
+    def test_returns_whole_article_for_target_language(self, parser, raw_article):
         assert False
 
 #     def test_returns_synonyms_if_they_exists(self):
