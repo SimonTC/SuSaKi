@@ -86,6 +86,11 @@ class HTMLParser(Parser):
         self.dictionary = {'language': language}
 
     def _extract_correct_language_part(self, raw_article):
+        """
+        raw_article: beatiful soup object containing the main content of the raw article
+        """
+        target_language = self.language
+
         raise NotImplementedError
 
     def _extract_etymologies(self, article):
@@ -97,7 +102,23 @@ class HTMLParser(Parser):
     def _parse_POS(self, pos):
         raise NotImplementedError
 
+    def _extract_article_text(self, raw_article):
+        """
+        raw_article: soup of the whole article age
+        """
+        content = raw_article.body.find('div', id='content')
+        body_content = content.find('div', id='bodyContent')
+        body_text_content = body_content.find('div', id='mw-content-text')
+        return body_text_content
+
     def parse_article(self, raw_article, word):
+        """
+        raw_article: requests object returned by a call to requests.get()
+        word: the word this article is about
+        """
+        soup = BeautifulSoup(raw_article.content, 'html.parser')
+        text_content = self._extract_article_text(raw_article)
+
         return self.dictionary
 
 
