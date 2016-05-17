@@ -6,7 +6,11 @@ Created on Apr 21, 2016
 import abc
 import re
 
+import logging
+
 from bs4 import BeautifulSoup
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class Parser(metaclass=abc.ABCMeta):
@@ -85,13 +89,44 @@ class HTMLParser(Parser):
         super().__init__(language)
         self.dictionary = {'language': language}
 
+    def _extract_text_until(self, from_tag, to_tag, soup):
+        """
+        Extract all tags between the from and to tags in the given soup.
+        """
+        start_extracting = False
+        new_soup = BeautifulSoup('html.parser')
+        next_tag = soup
+        while True:
+            if start_extracting:
+                new_soup.append(next_tag)
+            # Go next twice to avoid the string nodes themselves
+            next_tag = next_tag.next_element.next_element
+            if next_tag == to_tag:
+                return new_soup
+            elif next_tag == from_tag:
+                start_extracting = True
+
+    def _extract_language_part_border(self, language_tags, target_language):
+        has_seen_target_language = False
+        for tag in language_tags:
+            if has_seen_target_language:
+                return tag
+            elif tag.find_all('span', id=target_language):
+                has_seen_target_language = True
+        return None
+
     def _extract_correct_language_part(self, raw_article):
         """
         raw_article: beatiful soup object containing the main content of the raw article
         """
         target_language = self.language
+        from_tag = raw_article.find_all('span', id=target_language)[0]
+        to_tag = self._extract_language_part_border(
+            raw_article.find_all('h2'), target_language)
+        text = self._extract_text_until(from_tag, to_tag, '')
+        soup = BeautifulSoup(text, 'html.parser')
 
-        raise NotImplementedError
+        return soup
 
     def _extract_etymologies(self, article):
         raise NotImplementedError
@@ -117,7 +152,8 @@ class HTMLParser(Parser):
         word: the word this article is about
         """
         soup = BeautifulSoup(raw_article.content, 'html.parser')
-        text_content = self._extract_article_text(raw_article)
+        text_content = self._extract_article_text(soup)
+        language_part = self._extract_correct_language_part(text_content)
 
         return self.dictionary
 
