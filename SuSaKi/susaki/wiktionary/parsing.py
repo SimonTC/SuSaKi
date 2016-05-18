@@ -134,7 +134,8 @@ class HTMLParser(Parser):
         raw_articles: beatiful soup object containing the main content of the raw article
         """
         target_language = self.language
-        from_tag = raw_articles.find_all('span', id=target_language)[0]
+        from_tag = raw_articles.find(
+            'span', {'class': 'mw-headline', 'id': target_language})
         to_tag = self._extract_language_part_border(
             raw_articles.find_all('h2'), target_language)
         soup = self._extract_soup_between(from_tag, to_tag, raw_articles)
@@ -183,9 +184,9 @@ class HTMLParser(Parser):
                 '<li>', '<dl>', translation)
             translation_text = only_translation.get_text()
             translation_text = translation_text.replace('\n', '')
+            examples = translation.find_all('dl')
             translation_dict[
                 'translation {}'.format(i)] = translation_text
-            examples = translation.find_all('dl')
         pos_dict['translations'] = translation_dict
 
         # Extract declension
