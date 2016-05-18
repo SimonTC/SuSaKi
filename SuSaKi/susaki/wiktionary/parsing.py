@@ -148,11 +148,10 @@ class HTMLParser():
         language_dict = {}
         etymology_parts = self._extract_parts(
             language_part, 'span', 'Etymology', self.possible_word_classes)
-        etymologies_dict = {}
-        for i, etymology in enumerate(etymology_parts):
-            etymologies_dict['etymology {}'.format(i)] = \
-                self._parse_etymology_part(etymology)
-        language_dict['etymologies'] = etymologies_dict
+        etymologies_list = []
+        for etymology in etymology_parts:
+            etymologies_list.append(self._parse_etymology_part(etymology))
+        language_dict['etymologies'] = etymologies_list
         return language_dict
 
     def parse_article(self, raw_article, word, language='Finnish'):
@@ -176,16 +175,16 @@ class HTMLParser():
 
 def print_translations(article_dict):
     print(article_dict['word'])
-    for etymology_name, etymology_dict in \
-            article_dict['Finnish']['etymologies'].items():
-        print(etymology_name)
-        for _, pos in etymology_dict['parts-of-speech'].items():
+    for etymology in \
+            article_dict['Finnish']['etymologies']:
+        for _, pos in etymology['parts-of-speech'].items():
+            print('   {}'.format(pos['pos']))
             for translation_tuple in pos['translations']:
-                print(translation_tuple.translation)
+                print('      - ' + translation_tuple.translation)
 
 
 if __name__ == '__main__':
-    word = 'lähettää'
+    word = 'kuu'
     url = 'https://en.wiktionary.org/wiki/{}'.format(word)
     parser = HTMLParser()
     req = requests.get(url)
