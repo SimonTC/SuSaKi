@@ -205,10 +205,9 @@ class HTMLParser(Parser):
         """
         raw_articles: soup of the whole article age
         """
-        content = raw_article.body.find('div', id='content')
-        body_content = content.find('div', id='bodyContent')
-        body_text_content = body_content.find('div', id='mw-content-text')
-        return body_text_content
+        article_text = raw_article.find(
+            'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
+        return article_text
 
     def parse_article(self, raw_article, word):
         """
