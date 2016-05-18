@@ -33,31 +33,50 @@ def datadir(tmpdir, request):
 class TestHTMLParser:
 
     @pytest.fixture
-    def raw_article(self, datadir):
-        article_path = '/'.join([str(datadir), 'kuu.html'])
-        s = requests.Session()
-        s.mount('file://', FileAdapter())
-        return s.get('file://' + article_path)
+    def raw_articles(self, datadir):
+        article_names = ['kuu', 'sää', 'luen', 'koira']
+        article_dict = {}
+        for article in article_names:
+            article_path = '/'.join([str(datadir), '{}.html'.format(article)])
+            s = requests.Session()
+            s.mount('file://', FileAdapter())
+            article_dict[article] = s.get('file://' + article_path)
+        return article_dict
 
     @pytest.fixture
     def parser(self):
         return HTMLParser('Finnish')
 
-    def test_returns_dict_object(self, parser, raw_article):
-        result = parser.parse_article(raw_article, 'kuu')
-        assert isinstance(result, dict)
-
-    def test_only_returns_article_in_correct_target_language(self, parser, raw_article):
-        soup = BeautifulSoup(raw_article.content, 'html.parser')
+    def extract_language_part(self, article, parser):
+        soup = BeautifulSoup(article.content, 'html.parser')
         text_content = parser._extract_article_text(soup)
         language_part = parser._extract_correct_language_part(text_content)
+        return language_part
+
+    def test_returns_dict_object(self, parser, raw_articles):
+        result = parser.parse_article(raw_articles['kuu'], 'kuu')
+        assert isinstance(result, dict)
+
+    def test_only_returns_article_in_correct_target_language(self, parser, raw_articles):
+        language_part = self.extract_language_part(raw_articles['kuu'], parser)
         assert language_part.find(id='Finnish')
         assert not language_part.find(id='Estonian')
         assert not language_part.find(id='Ingrian')
         assert not language_part.find(id='Votic')
 
-    def test_returns_whole_article_for_target_language(self, parser, raw_article):
-        assert False
+    def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles):
+        for word, article in raw_articles.items():
+            language_part = self.extract_language_part(article, parser)
+            etymologies = parser._extract_etymologies(language_part)
+            if word == 'kuu':
+                assert len(etymologies) == 3
+            elif word == 'sää':
+                assert len(etymologies) == 2
+            elif word == 'luen':
+                assert len(etymologies) == 1
+            elif word == 'koira':
+                assert len(etymologies) == 1
+
 
 #     def test_returns_synonyms_if_they_exists(self):
 #         assert False

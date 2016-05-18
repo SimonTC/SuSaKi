@@ -47,8 +47,8 @@ class Wiktionary:
 
     def process_user_query(self, word):
         try:
-            raw_article = self.connector.collect_raw_article(word)
-            article = self.parser.parse_article(raw_article, word)
+            raw_articles = self.connector.collect_raw_article(word)
+            article = self.parser.parse_article(raw_articles, word)
         except HTTPError:
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))

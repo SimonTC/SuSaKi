@@ -21,7 +21,7 @@ class Parser(metaclass=abc.ABCMeta):
         self.language = language
 
     @abc.abstractmethod
-    def parse_article(self, raw_article, word):
+    def parse_article(self, raw_articles, word):
         """Parse the raw article and return a dictionary object 
         containing all information from the article"""
         raise NotImplementedError
@@ -70,10 +70,10 @@ class RestfulParser(Parser):
 
         return definition
 
-    def parse_article(self, raw_article, word):
+    def parse_article(self, raw_articles, word):
         """ Parse the json object representing the article as 
         returned by a call to the restful API of Wiktionary"""
-        definition_dict_list = self._extract_definitions(raw_article.json())
+        definition_dict_list = self._extract_definitions(raw_articles.json())
         if not definition_dict_list:
             raise IndexError(
                 "{} does not exist as word in the target language".format(word))
@@ -91,25 +91,33 @@ class HTMLParser(Parser):
         super().__init__(language)
         self.dictionary = {'language': language}
 
-    def _extract_text_until(self, from_tag, to_tag, soup):
+    def _extract_soup_between(self, from_tag, to_tag, soup):
         """
         Extract all tags between the from and to tags in the given soup.
+        If to_tag doesn't exist, all text from the from_tag to the end of the page is returned.
         """
         start_extracting = False
         text = str(soup)
         text_array = text.split('\n')
         text_to_extract = ''
         from_tag_text = str(from_tag)
-        to_tag_text = str(to_tag)
+        if to_tag:
+            no_to_tag = False
+            to_tag_text = str(to_tag)
+        else:
+            no_to_tag = True
         for line in text_array:
             if from_tag_text in line:
                 start_extracting = True
-            elif to_tag_text in line:
-                soup = BeautifulSoup(text_to_extract, 'html.parser')
-                logging.debug(soup.prettify())
-                return text_to_extract
+            elif not no_to_tag:
+                if to_tag_text in line:
+                    break
             if start_extracting:
                 text_to_extract += line + '\n'
+
+        soup = BeautifulSoup(text_to_extract, 'html.parser')
+        logging.debug(soup.prettify())
+        return text_to_extract
 
     def _extract_language_part_border(self, language_tags, target_language):
         has_seen_target_language = False
@@ -120,21 +128,40 @@ class HTMLParser(Parser):
                 has_seen_target_language = True
         return None
 
-    def _extract_correct_language_part(self, raw_article):
+    def _extract_correct_language_part(self, raw_articles):
         """
-        raw_article: beatiful soup object containing the main content of the raw article
+        raw_articles: beatiful soup object containing the main content of the raw article
         """
         target_language = self.language
-        from_tag = raw_article.find_all('span', id=target_language)[0]
+        from_tag = raw_articles.find_all('span', id=target_language)[0]
         to_tag = self._extract_language_part_border(
-            raw_article.find_all('h2'), target_language)
-        text = self._extract_text_until(from_tag, to_tag, raw_article)
+            raw_articles.find_all('h2'), target_language)
+        text = self._extract_soup_between(from_tag, to_tag, raw_articles)
         soup = BeautifulSoup(text, 'html.parser')
 
         return soup
 
-    def _extract_etymologies(self, article):
+    def _extract_pronounciation(self, article):
         raise NotImplementedError
+
+    def _extract_etymologies(self, article):
+        etymology_boundaries = article.find_all(
+            'span', id=re.compile('Etymology'))
+        if not etymology_boundaries:
+            # This article does not used etymologies. Might happen when the
+            # word in question is a conjugation
+            etymology_boundaries = article.find_all(
+                'span', id=re.compile('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix'))  # If no etymology is given, the next heading will contain the word class
+        etymology_parts = []
+        for i, boundary in enumerate(etymology_boundaries):
+            try:
+                etymology_part = self._extract_soup_between(
+                    boundary, etymology_boundaries[i + 1], article)
+            except IndexError:
+                etymology_part = self._extract_soup_between(
+                    boundary, None, article)
+            etymology_parts.append(etymology_part)
+        return etymology_parts
 
     def _extract_POS_parts(self, etymology):
         raise NotImplementedError
@@ -142,23 +169,24 @@ class HTMLParser(Parser):
     def _parse_POS(self, pos):
         raise NotImplementedError
 
-    def _extract_article_text(self, raw_article):
+    def _extract_article_text(self, raw_articles):
         """
-        raw_article: soup of the whole article age
+        raw_articles: soup of the whole article age
         """
-        content = raw_article.body.find('div', id='content')
+        content = raw_articles.body.find('div', id='content')
         body_content = content.find('div', id='bodyContent')
         body_text_content = body_content.find('div', id='mw-content-text')
         return body_text_content
 
-    def parse_article(self, raw_article, word):
+    def parse_article(self, raw_articles, word):
         """
-        raw_article: requests object returned by a call to requests.get()
+        raw_articles: requests object returned by a call to requests.get()
         word: the word this article is about
         """
-        soup = BeautifulSoup(raw_article.content, 'html.parser')
+        soup = BeautifulSoup(raw_articles.content, 'html.parser')
         text_content = self._extract_article_text(soup)
         language_part = self._extract_correct_language_part(text_content)
+        etymology_parts = self._extract_etymologies(language_part)
 
         return self.dictionary
 
