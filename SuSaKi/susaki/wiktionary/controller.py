@@ -6,8 +6,8 @@ Created on Apr 20, 2016
 
 import argparse
 from collections import defaultdict
-from susaki.wiktionary.connectors import RestfulConnector
-from susaki.wiktionary.parsing import RestfulParser
+from susaki.wiktionary.connectors import HTMLConnector
+from susaki.wiktionary.parsing import HTMLParser
 from requests.exceptions import HTTPError
 
 
@@ -16,8 +16,8 @@ class Wiktionary:
     def __init__(self, language):
         self.language = language
         self._setup_command_dict()
-        self.connector = RestfulConnector(language)
-        self.parser = RestfulParser(language)
+        self.connector = HTMLConnector(language)
+        self.parser = HTMLParser()
 
     def _setup_command_dict(self):
         self.command_dict = defaultdict(lambda: self.process_user_query)
@@ -29,26 +29,29 @@ class Wiktionary:
         return False
 
     def change_language(self, command):
-        new_language = input('Which language would you like to use?: >>')
-        old_language = self.language
-        self.connector = RestfulConnector(new_language)
-        print('The language was changed from {} to {}'.format(
-            old_language, self.connector.language))
+        print('Language change is currently not implemented')
+#         new_language = input('Which language would you like to use?: >>')
+#         old_language = self.language
+#         self.connector = RestfulConnector(new_language)
+#         print('The language was changed from {} to {}'.format(
+#             old_language, self.connector.language))
         return True
 
     def print_information(self, article):
-        print('Search term: {}'.format(article.word))
+        print('Search term: {}'.format(article['word']))
         print()
-        for definition in article.definitions:
-            print(definition.pos)
-            for explanation in definition.translations:
-                print("  " + explanation.translation)
-            print()
+        for etymology in article[self.language]['etymologies']:
+            for _, pos in etymology['parts-of-speech'].items():
+                print('{}'.format(pos['pos']))
+                for translation_tuple in pos['translations']:
+                    print('  ' + translation_tuple.translation)
+                print()
 
     def process_user_query(self, word):
         try:
-            raw_articles = self.connector.collect_raw_article(word)
-            article = self.parser.parse_article(raw_articles, word)
+            raw_article = self.connector.collect_raw_article(word)
+            article = self.parser.parse_article(
+                raw_article.content, word, self.language)
         except HTTPError:
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))
@@ -96,7 +99,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Look for translations into English on wiktionary')
     parser.add_argument(
-        "-l", "--language", help="The language you want translations from", default="fi")
+        "-l", "--language", help="The language you want translations from", default="Finnish")
     args = parser.parse_args()
     language = args.language
     wiktionary = Wiktionary(language)

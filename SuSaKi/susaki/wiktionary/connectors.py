@@ -9,7 +9,6 @@ import re
 
 from bs4 import BeautifulSoup
 
-from susaki.wiktionary.parsing import Article, Definition, Translation
 from requests.exceptions import HTTPError
 
 
@@ -25,24 +24,6 @@ class Connector(metaclass=abc.ABCMeta):
            Returns a LookupError if the page does exists but no definitions exists for the given word
            in the target language """
         raise NotImplementedError
-
-
-class RestfulConnector(Connector):
-    '''
-    Use this class to connect to Wiktionary through their RESTful API
-    '''
-
-    def __init__(self, language):
-        super().__init__(language)
-
-    def collect_raw_article(self, word):
-        """Collects the article page for the given word using the wiktionary RESTful API"""
-        url = 'https://en.wiktionary.org/api/rest_v1/page/definition/{}'.format(
-            word)
-        req = requests.get(url)
-        # Test for bad response. Raises HTTPError if page doesn't exist
-        req.raise_for_status()
-        return req
 
 
 class HTMLConnector(Connector):
