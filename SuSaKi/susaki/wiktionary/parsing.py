@@ -12,28 +12,17 @@ import logging
 
 from bs4 import BeautifulSoup
 
+from collections import namedtuple
+
 logging.basicConfig(level=logging.DEBUG)
 
-
-class Parser(metaclass=abc.ABCMeta):
-
-    def __init__(self, language):
-        self.language = language
-
-    @abc.abstractmethod
-    def parse_article(self, raw_articles, word):
-        """Parse the raw article and return a dictionary object 
-        containing all information from the article"""
-        raise NotImplementedError
+translation_tuple = namedtuple('translation', 'translation, examples')
+example_tuple = namedtuple('example', 'example, translation')
 
 
-class HTMLParser(Parser):
+class HTMLParser():
 
     possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix'
-
-    def __init__(self, language):
-        super().__init__(language)
-        self.dictionary = {'language': language}
 
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """
@@ -71,15 +60,14 @@ class HTMLParser(Parser):
                 has_seen_target_language = True
         return None
 
-    def _extract_correct_language_part(self, raw_articles):
+    def _extract_correct_language_part(self, raw_articles, source_language):
         """
         raw_articles: beatiful soup object containing the main content of the raw article
         """
-        target_language = self.language
         from_tag = raw_articles.find(
-            'span', {'class': 'mw-headline', 'id': target_language})
+            'span', {'class': 'mw-headline', 'id': source_language})
         to_tag = self._extract_language_part_border(
-            raw_articles.find_all('h2'), target_language)
+            raw_articles.find_all('h2'), source_language)
         soup = self._extract_soup_between(from_tag, to_tag, raw_articles)
         return soup
 
@@ -113,23 +101,24 @@ class HTMLParser(Parser):
         return parts
 
     def _parse_POS(self, pos_part):
-        pos_dict = {}
+        pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
+        pos_dict = {'pos': pos_type}
         # Extract translations + examples
         # The list of translations should always be the first list in the POS
         # part
         translation_list = pos_part.find_all('ol')[0]
         # Each list item contains a translation together with eventual examples
         translations = translation_list.find_all('li')
-        translation_dict = {}
+        pos_translation_list = []
         for i, translation in enumerate(translations):
             only_translation = self._extract_soup_between(
                 '<li>', '<dl>', translation)
             translation_text = only_translation.get_text()
             translation_text = translation_text.replace('\n', '')
             examples = translation.find_all('dl')
-            translation_dict[
-                'translation {}'.format(i)] = translation_text
-        pos_dict['translations'] = translation_dict
+            t = translation_tuple(translation=translation_text, examples=[])
+            pos_translation_list.append(t)
+        pos_dict['translations'] = pos_translation_list
 
         # Extract declension
 
@@ -144,48 +133,61 @@ class HTMLParser(Parser):
         # Extract compunds
         return pos_dict
 
-    def _extract_article_text(self, raw_article):
-        """
-        raw_articles: soup of the whole article age
-        """
-        article_text = raw_article.find(
-            'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
-        return article_text
+    def _parse_etymology_part(self, etymology_part):
+        etymology_dict = {}
+        POS_parts = self._extract_parts(
+            etymology_part, 'span', self.possible_word_classes, None)
+        pos_parts_dict = {}
+        for j, pos_part in enumerate(POS_parts):
+            pos_dict = self._parse_POS(pos_part)
+            pos_parts_dict['pos {}'.format(j)] = pos_dict
+        etymology_dict['parts-of-speech'] = pos_parts_dict
+        return etymology_dict
 
-    def parse_article(self, raw_article, word):
-        """
-        raw_articles: requests object returned by a call to requests.get()
-        word: the word this article is about
-        """
-        article_dict = self.dictionary
-        soup = BeautifulSoup(raw_article.content, 'html.parser')
-        text_content = self._extract_article_text(soup)
-        language_part = self._extract_correct_language_part(text_content)
+    def _parse_language_part(self, language_part, language):
+        language_dict = {}
         etymology_parts = self._extract_parts(
             language_part, 'span', 'Etymology', self.possible_word_classes)
+        etymologies_dict = {}
         for i, etymology in enumerate(etymology_parts):
-            etymology_dict = {}
-            POS_parts = self._extract_parts(
-                etymology, 'span', self.possible_word_classes, None)
-            for j, pos_part in enumerate(POS_parts):
-                pos_dict = self._parse_POS(pos_part)
-                etymology_dict['pos {}'.format(j)] = pos_dict
-            article_dict['etymology {}'.format(i)] = etymology_dict
+            etymologies_dict['etymology {}'.format(i)] = \
+                self._parse_etymology_part(etymology)
+        language_dict['etymologies'] = etymologies_dict
+        return language_dict
 
-        return self.dictionary
+    def parse_article(self, raw_article, word, language='Finnish'):
+        """
+        raw_article: html-document of the whole article for the word
+        word: the word this article is about
+        language: source language of the word.
+            This language is used to do the translation into English
+        """
+        article_dict = {'word': word}
+        soup = BeautifulSoup(raw_article, 'html.parser')
+        main_content = soup.find(
+            'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
+        language_part = self._extract_correct_language_part(
+            main_content, language)
+        article_dict[language] = self._parse_language_part(
+            language_part, language)
+
+        return article_dict
 
 
 def print_translations(article_dict):
-    for key, etymology_dict in article_dict.items():
-        if 'etymology' in key:
-            for _, pos in etymology_dict.items():
-                for _, translation in pos['translations'].items():
-                    print(translation)
+    print(article_dict['word'])
+    for etymology_name, etymology_dict in \
+            article_dict['Finnish']['etymologies'].items():
+        print(etymology_name)
+        for _, pos in etymology_dict['parts-of-speech'].items():
+            for translation_tuple in pos['translations']:
+                print(translation_tuple.translation)
+
 
 if __name__ == '__main__':
     word = 'lähettää'
     url = 'https://en.wiktionary.org/wiki/{}'.format(word)
-    parser = HTMLParser('Finnish')
+    parser = HTMLParser()
     req = requests.get(url)
-    article_dict = parser.parse_article(req, word)
+    article_dict = parser.parse_article(req.content, word)
     print_translations(article_dict)
