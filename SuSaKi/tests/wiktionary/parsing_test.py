@@ -8,7 +8,7 @@ import os
 from distutils import dir_util
 import requests
 from requests_file import FileAdapter
-from susaki.wiktionary.parsing import HTMLParser, Article
+from susaki.wiktionary.parsing import HTMLParser
 
 from bs4 import BeautifulSoup
 
@@ -45,20 +45,23 @@ class TestHTMLParser:
 
     @pytest.fixture
     def parser(self):
-        return HTMLParser('Finnish')
+        return HTMLParser()
 
     def extract_language_part(self, article, parser):
-        soup = BeautifulSoup(article.content, 'html.parser')
-        text_content = parser._extract_article_text(soup)
-        language_part = parser._extract_correct_language_part(text_content)
+        soup = BeautifulSoup(article, 'html.parser')
+        main_content = soup.find(
+            'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
+        language_part = parser._extract_correct_language_part(
+            main_content, 'Finnish')
         return language_part
 
     def test_returns_dict_object(self, parser, raw_articles):
-        result = parser.parse_article(raw_articles['kuu'], 'kuu')
+        result = parser.parse_article(raw_articles['kuu'].content, 'kuu')
         assert isinstance(result, dict)
 
     def test_only_returns_article_in_correct_target_language(self, parser, raw_articles):
-        language_part = self.extract_language_part(raw_articles['kuu'], parser)
+        language_part = self.extract_language_part(
+            raw_articles['kuu'].content, parser)
         assert language_part.find(id='Finnish')
         assert not language_part.find(id='Estonian')
         assert not language_part.find(id='Ingrian')
@@ -66,7 +69,7 @@ class TestHTMLParser:
 
     def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles):
         for word, article in raw_articles.items():
-            language_part = self.extract_language_part(article, parser)
+            language_part = self.extract_language_part(article.content, parser)
             etymologies = parser._extract_parts(
                 language_part, 'span', 'Etymology', parser.possible_word_classes)
             if word == 'kuu':
@@ -78,7 +81,8 @@ class TestHTMLParser:
             elif word == 'koira':
                 assert len(etymologies) == 1
 
-
+    def test_extracts_correct_pos_names(self):
+        assert False
 #     def test_returns_synonyms_if_they_exists(self):
 #         assert False
 #
@@ -101,13 +105,13 @@ class TestHTMLParser:
 #         assert False
 #
 #     def test_returns_compound_words_if_they_exists(self):
-#         return False
+#         assert False
 #
 #     def test_returns_none_as_compund_words_if_none_exists(self):
-#         return False
+#         assert False
 #
 #     def test_returns_declensions_table_if_it_exists(self):
-#         return False
+#         assert False
 #
 # #
 # #     #Should be moved to another class
