@@ -87,6 +87,8 @@ class RestfulParser(Parser):
 
 class HTMLParser(Parser):
 
+    possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix'
+
     def __init__(self, language):
         super().__init__(language)
         self.dictionary = {'language': language}
@@ -116,8 +118,7 @@ class HTMLParser(Parser):
                 text_to_extract += line + '\n'
 
         soup = BeautifulSoup(text_to_extract, 'html.parser')
-        logging.debug(soup.prettify())
-        return text_to_extract
+        return soup
 
     def _extract_language_part_border(self, language_tags, target_language):
         has_seen_target_language = False
@@ -136,57 +137,98 @@ class HTMLParser(Parser):
         from_tag = raw_articles.find_all('span', id=target_language)[0]
         to_tag = self._extract_language_part_border(
             raw_articles.find_all('h2'), target_language)
-        text = self._extract_soup_between(from_tag, to_tag, raw_articles)
-        soup = BeautifulSoup(text, 'html.parser')
-
+        soup = self._extract_soup_between(from_tag, to_tag, raw_articles)
         return soup
 
     def _extract_pronounciation(self, article):
         raise NotImplementedError
 
-    def _extract_etymologies(self, article):
-        etymology_boundaries = article.find_all(
-            'span', id=re.compile('Etymology'))
-        if not etymology_boundaries:
+    def _extract_parts(self, parent_soup, tag_name, primary_id_expression, secondary_id_expression):
+        """
+        Extract parts from the given soup. 
+        parent_soup: soup from which parts are extracted.
+        tag_name: name of the tag that is deliminating the parts to be extracted.
+        primary_id_expression: regex expression to find the correct tags.
+        secondary_id_expression: regex expression to use if nothing is found with the primary expression.
+        """
+        part_boundaries = parent_soup.find_all(
+            tag_name, id=re.compile(primary_id_expression))
+        if not part_boundaries:
             # This article does not used etymologies. Might happen when the
             # word in question is a conjugation
-            etymology_boundaries = article.find_all(
-                'span', id=re.compile('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix'))  # If no etymology is given, the next heading will contain the word class
-        etymology_parts = []
-        for i, boundary in enumerate(etymology_boundaries):
+            part_boundaries = parent_soup.find_all(
+                tag_name, id=re.compile(secondary_id_expression))  # If no etymology is given, the next heading will contain the word class
+        parts = []
+        for i, boundary in enumerate(part_boundaries):
             try:
-                etymology_part = self._extract_soup_between(
-                    boundary, etymology_boundaries[i + 1], article)
+                part = self._extract_soup_between(
+                    boundary, part_boundaries[i + 1], parent_soup)
             except IndexError:
-                etymology_part = self._extract_soup_between(
-                    boundary, None, article)
-            etymology_parts.append(etymology_part)
-        return etymology_parts
+                part = self._extract_soup_between(
+                    boundary, None, parent_soup)
+            parts.append(part)
+        return parts
 
-    def _extract_POS_parts(self, etymology):
-        raise NotImplementedError
+    def _parse_POS(self, pos_part):
+        pos_dict = {}
+        # Extract translations + examples
+        # The list of translations should always be the first list in the POS
+        # part
+        translation_list = pos_part.find_all('ol')[0]
+        # Each list item contains a translation together with eventual examples
+        translations = translation_list.find_all('li')
+        translation_dict = {}
+        for i, translation in enumerate(translations):
+            only_translation = self._extract_soup_between(
+                '<li>', '<dl>', translation)
+            translation_text = only_translation.get_text()
+            translation_text = translation_text.replace('\n', '')
+            translation_dict[
+                'translation {}'.format(i)] = translation_text
+            examples = translation.find_all('dl')
+        pos_dict['translations'] = translation_dict
 
-    def _parse_POS(self, pos):
-        raise NotImplementedError
+        # Extract declension
 
-    def _extract_article_text(self, raw_articles):
+        # Extract usage notes
+
+        # Extract synonyms
+
+        # Extract related terms
+
+        # Extract Derived terms
+
+        # Extract compunds
+        return pos_dict
+
+    def _extract_article_text(self, raw_article):
         """
         raw_articles: soup of the whole article age
         """
-        content = raw_articles.body.find('div', id='content')
+        content = raw_article.body.find('div', id='content')
         body_content = content.find('div', id='bodyContent')
         body_text_content = body_content.find('div', id='mw-content-text')
         return body_text_content
 
-    def parse_article(self, raw_articles, word):
+    def parse_article(self, raw_article, word):
         """
         raw_articles: requests object returned by a call to requests.get()
         word: the word this article is about
         """
-        soup = BeautifulSoup(raw_articles.content, 'html.parser')
+        article_dict = self.dictionary
+        soup = BeautifulSoup(raw_article.content, 'html.parser')
         text_content = self._extract_article_text(soup)
         language_part = self._extract_correct_language_part(text_content)
-        etymology_parts = self._extract_etymologies(language_part)
+        etymology_parts = self._extract_parts(
+            language_part, 'span', 'Etymology', self.possible_word_classes)
+        for i, etymology in enumerate(etymology_parts):
+            etymology_dict = {}
+            POS_parts = self._extract_parts(
+                etymology, 'span', self.possible_word_classes, None)
+            for j, pos_part in enumerate(POS_parts):
+                pos_dict = self._parse_POS(pos_part)
+                etymology_dict['pos {}'.format(j)] = pos_dict
+            article_dict['etymology {}'.format(i)] = etymology_dict
 
         return self.dictionary
 
@@ -233,8 +275,18 @@ class Translation:
     def add_example(self, example):
         self.examples.append(example)
 
+
+def print_translations(article_dict):
+    for key, etymology_dict in article_dict.items():
+        if 'etymology' in key:
+            for _, pos in etymology_dict.items():
+                for _, translation in pos['translations'].items():
+                    print(translation)
+
 if __name__ == '__main__':
-    url = 'https://en.wiktionary.org/wiki/kuu'
+    word = 'lähettää'
+    url = 'https://en.wiktionary.org/wiki/{}'.format(word)
     parser = HTMLParser('Finnish')
     req = requests.get(url)
-    parser.parse_article(req, 'kuu')
+    article_dict = parser.parse_article(req, word)
+    print_translations(article_dict)

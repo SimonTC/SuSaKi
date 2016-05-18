@@ -67,7 +67,8 @@ class TestHTMLParser:
     def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles):
         for word, article in raw_articles.items():
             language_part = self.extract_language_part(article, parser)
-            etymologies = parser._extract_etymologies(language_part)
+            etymologies = parser._extract_parts(
+                language_part, 'span', 'Etymology', parser.possible_word_classes)
             if word == 'kuu':
                 assert len(etymologies) == 3
             elif word == 'sää':
