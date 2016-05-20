@@ -34,7 +34,7 @@ class TestHTMLParser:
 
     @pytest.fixture
     def raw_articles(self, datadir):
-        article_names = ['kuu', 'sää', 'luen', 'koira']
+        article_names = ['kuu', 'sää', 'luen', 'koira', 'hello']
         article_dict = {}
         for article in article_names:
             article_path = '/'.join([str(datadir), '{}.html'.format(article)])
@@ -59,7 +59,7 @@ class TestHTMLParser:
         result = parser.parse_article(raw_articles['kuu'].content, 'kuu')
         assert isinstance(result, dict)
 
-    def test_only_returns_article_in_correct_target_language(self, parser, raw_articles):
+    def test_only_returns_article_about_correct_source_language(self, parser, raw_articles):
         language_part = self.extract_language_part(
             raw_articles['kuu'].content, parser)
         assert language_part.find(id='Finnish')
@@ -67,22 +67,30 @@ class TestHTMLParser:
         assert not language_part.find(id='Ingrian')
         assert not language_part.find(id='Votic')
 
+    def test_return_error_if_article_doesnt_contain_target_source(self, parser, raw_articles):
+        with pytest.raises(KeyError) as exinfo:
+            language_part = self.extract_language_part(
+                raw_articles['hello'].content, parser)
+        assert 'No explanations exists for the language:' in str(exinfo)
+
     def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles):
         for word, article in raw_articles.items():
-            language_part = self.extract_language_part(article.content, parser)
-            etymologies = parser._extract_parts(
-                language_part, 'span', 'Etymology', parser.possible_word_classes)
-            if word == 'kuu':
-                assert len(etymologies) == 3
-            elif word == 'sää':
-                assert len(etymologies) == 2
-            elif word == 'luen':
-                assert len(etymologies) == 1
-            elif word == 'koira':
-                assert len(etymologies) == 1
+            if word != 'hello':
+                language_part = self.extract_language_part(
+                    article.content, parser)
+                etymologies = parser._extract_parts(
+                    language_part, 'span', 'Etymology', parser.possible_word_classes)
+                if word == 'kuu':
+                    assert len(etymologies) == 3
+                elif word == 'sää':
+                    assert len(etymologies) == 2
+                elif word == 'luen':
+                    assert len(etymologies) == 1
+                elif word == 'koira':
+                    assert len(etymologies) == 1
 
-    def test_extracts_correct_pos_names(self):
-        assert False
+#     def test_extracts_correct_pos_names(self):
+#         assert False
 #     def test_returns_synonyms_if_they_exists(self):
 #         assert False
 #
