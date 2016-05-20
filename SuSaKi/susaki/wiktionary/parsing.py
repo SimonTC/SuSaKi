@@ -14,9 +14,9 @@ from bs4 import BeautifulSoup
 
 from collections import namedtuple
 
-# logging.basicConfig(level=logging.DEBUG)
-# logger = logging.getLogger()
-# logger.propagate = False
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 translation_tuple = namedtuple('translation', 'translation, examples')
 example_tuple = namedtuple('example', 'example, translation')
