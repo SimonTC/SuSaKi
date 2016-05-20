@@ -60,7 +60,11 @@ class HTMLParser():
                 return tag
             elif tag.find_all('span', id=target_language):
                 has_seen_target_language = True
-        return None
+        if not has_seen_target_language:
+            raise KeyError(
+                'No explanations exists for the language: {}'.format(target_language))
+        else:
+            return tag
 
     def _extract_correct_language_part(self, raw_articles, source_language):
         """
@@ -186,7 +190,7 @@ def print_translations(article_dict):
 
 
 if __name__ == '__main__':
-    word = 'kuu'
+    word = 'hello'
     url = 'https://en.wiktionary.org/wiki/{}'.format(word)
     parser = HTMLParser()
     req = requests.get(url)

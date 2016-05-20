@@ -58,6 +58,12 @@ class Wiktionary:
         except IndexError:
             print(
                 '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+        except KeyError as error:
+            if 'No explanations exists for the language:' in str(error):
+                print(
+                    '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+            else:
+                raise
         else:
             self.print_information(article)
         return True
