@@ -48,8 +48,9 @@ class TestHTMLConnector:
         page_path = '/'.join([str(datadir), 'no_result.html'])
         mock_collector.return_value = request_session.get(
             'file://' + page_path)
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError) as error:
             connector.collect_raw_article('')
+        assert 'does not exist on Wiktionary' in str(error)
 
     @patch('susaki.wiktionary.connectors.HTMLConnector._collect_page')
     def test_returns_suggestions_when_the_word_doesnt_have_an_article_but_exists_in_other_article(self, mock_collector, connector, datadir, request_session):

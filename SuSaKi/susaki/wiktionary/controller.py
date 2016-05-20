@@ -50,22 +50,23 @@ class Wiktionary:
     def process_user_query(self, word):
         try:
             raw_article = self.connector.collect_raw_article(word)
-            article = self.parser.parse_article(
-                raw_article.content, word, self.language)
-        except HTTPError:
-            print(
-                '"{}" does not seem to have a page on Wiktionary'.format(word))
-        except IndexError:
-            print(
-                '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+            if type(raw_article) is list:
+                print(
+                    '{} does not have its own article, however it does exist in the articles for the following words:'.format(word))
+                for suggestion in raw_article:
+                    print(''.join(['  ', suggestion]))
+            else:
+                article = self.parser.parse_article(
+                    raw_article.content, word, self.language)
+                self.print_information(article)
         except KeyError as error:
             if 'No explanations exists for the language:' in str(error):
                 print(
                     '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+            elif 'does not exist on Wiktionary' in str(error):
+                print(str(error))
             else:
                 raise
-        else:
-            self.print_information(article)
         return True
 
     def greet_user(self, command):
