@@ -64,7 +64,7 @@ class Wiktionary:
                 print(
                     '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
             elif 'does not exist on Wiktionary' in str(error):
-                print(str(error))
+                print(str(error).replace("'", ""))
             else:
                 raise
         return True
