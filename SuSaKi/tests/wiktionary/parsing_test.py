@@ -13,34 +13,39 @@ from susaki.wiktionary.parsing import HTMLParser
 from bs4 import BeautifulSoup
 
 
-@pytest.fixture
-def datadir(tmpdir, request):
+@pytest.fixture(scope='module')
+def datadir(tmpdir_factory, request):
     '''
     Fixture responsible for searching a folder with the same name of test
     module and, if available, moving all contents to a temporary directory so
     tests can use them freely.
     Source: http://stackoverflow.com/a/29631801
+    Using tmpdir_factory to only create the directory once.
+    Otherwise it would be created for each test using this fixture
+    (https://pytest.org/latest/tmpdir.html)
     '''
     filename = request.module.__file__
     test_dir, _ = os.path.splitext(filename)
 
+    tmpdir_ = tmpdir_factory.getbasetemp()
     if os.path.isdir(test_dir):
-        dir_util.copy_tree(test_dir, str(tmpdir))
+        dir_util.copy_tree(test_dir, str(tmpdir_))
 
-    return tmpdir
+    return tmpdir_
 
 
 class TestHTMLParser:
 
-    @pytest.fixture
+    @pytest.fixture(scope='module')
     def raw_articles(self, datadir):
-        article_names = ['kuu', 'sää', 'luen', 'koira', 'hello']
         article_dict = {}
-        for article in article_names:
-            article_path = '/'.join([str(datadir), '{}.html'.format(article)])
-            s = requests.Session()
-            s.mount('file://', FileAdapter())
-            article_dict[article] = s.get('file://' + article_path)
+        for article in os.listdir(str(datadir)):
+            if article.endswith('.html'):
+                article_name = article.replace('.html', '')
+                article_path = '/'.join([str(datadir), article])
+                s = requests.Session()
+                s.mount('file://', FileAdapter())
+                article_dict[article_name] = s.get('file://' + article_path)
         return article_dict
 
     @pytest.fixture
@@ -73,21 +78,18 @@ class TestHTMLParser:
                 raw_articles['hello'].content, parser)
         assert 'No explanations exists for the language:' in str(exinfo)
 
-    def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles):
-        for word, article in raw_articles.items():
-            if word != 'hello':
-                language_part = self.extract_language_part(
-                    article.content, parser)
-                etymologies = parser._extract_parts(
-                    language_part, 'span', 'Etymology', parser.possible_word_classes)
-                if word == 'kuu':
-                    assert len(etymologies) == 3
-                elif word == 'sää':
-                    assert len(etymologies) == 2
-                elif word == 'luen':
-                    assert len(etymologies) == 1
-                elif word == 'koira':
-                    assert len(etymologies) == 1
+    @pytest.mark.parametrize('word,expected', [
+        ('kuu', 3),
+        ('sää', 2),
+        ('luen', 1),
+        ('koira', 1)])
+    def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles, word, expected):
+        article = raw_articles[word]
+        language_part = self.extract_language_part(article.content, parser)
+        etymologies = parser._extract_parts(
+            language_part, 'span', 'Etymology', parser.possible_word_classes)
+        assert len(etymologies) == expected
+
 
 #     def test_extracts_correct_pos_names(self):
 #         assert False
