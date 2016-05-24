@@ -37,8 +37,7 @@ class TestHTMLParser:
         article_names = ['kuu', 'sää', 'luen', 'koira', 'hello']
         article_dict = {}
         for article in article_names:
-            article_path = '/'.join([str(datadir),
-                                     'Simple', '{}.html'.format(article)])
+            article_path = '/'.join([str(datadir), '{}.html'.format(article)])
             s = requests.Session()
             s.mount('file://', FileAdapter())
             article_dict[article] = s.get('file://' + article_path)
