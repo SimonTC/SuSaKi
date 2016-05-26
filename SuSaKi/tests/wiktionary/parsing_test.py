@@ -96,9 +96,8 @@ class TestHTMLParser:
     def test_doesnt_crash_when_parsing(self, parser, raw_articles, word):
         article = raw_articles[word]
         try:
-            language_part = self.extract_language_part(article.content, parser)
-            etymologies = parser._extract_parts(
-                language_part, 'span', 'Etymology', parser.possible_word_classes)
+            parser.parse_article(article, word, language='Finnish')
+
         except:
             pytest.fail('Unexpected error')
 

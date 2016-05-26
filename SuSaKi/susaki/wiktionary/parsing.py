@@ -190,7 +190,7 @@ def print_translations(article_dict):
 
 
 if __name__ == '__main__':
-    word = 'hello'
+    word = 'sää'
     url = 'https://en.wiktionary.org/wiki/{}'.format(word)
     parser = HTMLParser()
     req = requests.get(url)
