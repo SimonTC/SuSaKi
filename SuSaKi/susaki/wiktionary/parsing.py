@@ -57,6 +57,9 @@ class HTMLParser():
         return soup
 
     def _extract_language_part_border(self, language_tags, target_language):
+        """
+        Extract the language tag that comes after the target language tag.
+        """
         has_seen_target_language = False
         for tag in language_tags:
             if has_seen_target_language:
@@ -71,7 +74,7 @@ class HTMLParser():
 
     def _extract_correct_language_part(self, raw_articles, source_language):
         """
-        raw_articles: beatiful soup object containing the main content of the raw article
+        raw_articles: beautiful soup object containing the main content of the raw article
         """
         from_tag = raw_articles.find(
             'span', {'class': 'mw-headline', 'id': source_language})
