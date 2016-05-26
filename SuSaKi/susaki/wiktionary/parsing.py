@@ -24,12 +24,15 @@ example_tuple = namedtuple('example', 'example, translation')
 
 class HTMLParser():
 
-    possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix'
+    possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix|Conjunction|Determiner|Exclamation|Preposition'
 
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """
         Extract all tags between the from and to tags in the given soup.
         If to_tag doesn't exist, all text from the from_tag to the end of the page is returned.
+        The soup is converted to a string since there might be problems with 
+        the html which prevents BeautifulSoup from working correctly.
+        Returns a new soup object of the text between the two tags. 
         """
         start_extracting = False
         text = str(soup)
@@ -82,7 +85,7 @@ class HTMLParser():
 
     def _extract_parts(self, parent_soup, tag_name, primary_id_expression, secondary_id_expression):
         """
-        Extract parts from the given soup. 
+        Extract parts from the given soup.
         parent_soup: soup from which parts are extracted.
         tag_name: name of the tag that is deliminating the parts to be extracted.
         primary_id_expression: regex expression to find the correct tags.
