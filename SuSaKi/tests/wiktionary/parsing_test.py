@@ -92,7 +92,7 @@ class TestHTMLParser:
 
     @pytest.mark.parametrize('word', [
         'että', 'haluta', 'koira', 'kuu',
-        'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää'])
+        'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää', 'ilman', 'ilma'])
     def test_doesnt_crash_when_parsing(self, parser, raw_articles, word):
         article = raw_articles[word]
         try:
