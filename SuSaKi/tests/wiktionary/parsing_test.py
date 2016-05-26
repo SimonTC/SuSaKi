@@ -90,17 +90,6 @@ class TestHTMLParser:
             language_part, 'span', 'Etymology', parser.possible_word_classes)
         assert len(etymologies) == expected
 
-    @pytest.mark.parametrize('word', [
-        'että', 'haluta', 'koira', 'kuu',
-        'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää', 'ilman', 'ilma'])
-    def test_doesnt_crash_when_parsing(self, parser, raw_articles, word):
-        article = raw_articles[word]
-        try:
-            parser.parse_article(article, word, language='Finnish')
-
-        except:
-            pytest.fail('Unexpected error')
-
 #     def test_extracts_correct_pos_names(self):
 #         assert False
 #     def test_returns_synonyms_if_they_exists(self):
