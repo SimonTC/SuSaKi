@@ -64,15 +64,19 @@ class TestHTMLParser:
         result = parser.parse_article(raw_articles['kuu'].content, 'kuu')
         assert isinstance(result, dict)
 
-    def test_only_returns_article_about_correct_source_language(self, parser, raw_articles):
+    @pytest.mark.parametrize('word, not_included', [
+        ('kuu', ['Estonian', 'Ingrian', 'Votic']),
+        ('ilma', ['Estonian', 'Maltese', 'Votic', 'Võro']),
+        ('koira', ['Karelian', 'Votic']),
+        ('luen', ['Danish'])])
+    def test_only_returns_article_about_correct_source_language(self, parser, raw_articles, word, not_included):
         language_part = self.extract_language_part(
-            raw_articles['kuu'].content, parser)
+            raw_articles[word].content, parser)
         assert language_part.find(id='Finnish')
-        assert not language_part.find(id='Estonian')
-        assert not language_part.find(id='Ingrian')
-        assert not language_part.find(id='Votic')
+        for language in not_included:
+            assert not language_part.find(id=language)
 
-    def test_return_error_if_article_doesnt_contain_target_source(self, parser, raw_articles):
+    def test_does_return_error_if_article_doesnt_contain_source_language(self, parser, raw_articles):
         with pytest.raises(KeyError) as exinfo:
             language_part = self.extract_language_part(
                 raw_articles['hello'].content, parser)
