@@ -3,7 +3,6 @@ Created on Apr 21, 2016
 
 @author: simon
 '''
-import abc
 import re
 
 import requests
@@ -30,9 +29,9 @@ class HTMLParser():
         """
         Extract all tags between the from and to tags in the given soup.
         If to_tag doesn't exist, all text from the from_tag to the end of the page is returned.
-        The soup is converted to a string since there might be problems with 
+        The soup is converted to a string since there might be problems with
         the html which prevents BeautifulSoup from working correctly.
-        Returns a new soup object of the text between the two tags. 
+        Returns a new soup object of the text between the two tags.
         """
         start_extracting = False
         text = str(soup)

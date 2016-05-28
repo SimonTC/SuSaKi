@@ -5,11 +5,8 @@ Created on Apr 21, 2016
 '''
 import abc
 import requests
-import re
 
 from bs4 import BeautifulSoup
-
-from requests.exceptions import HTTPError
 
 
 class Connector(metaclass=abc.ABCMeta):
@@ -39,7 +36,7 @@ class HTMLConnector(Connector):
         return req
 
     def collect_raw_article(self, word):
-        """ 
+        """
         Will return the HTML page if an article for the given word exists.
         If no page exists, but the word does exist in other articles a list of the names of these articles is returned.
         If The word doesn't exist on Wiktionary a KeyError excpetion is raised

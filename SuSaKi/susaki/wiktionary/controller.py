@@ -8,7 +8,6 @@ import argparse
 from collections import defaultdict
 from susaki.wiktionary.connectors import HTMLConnector
 from susaki.wiktionary.parsing import HTMLParser
-from requests.exceptions import HTTPError
 
 
 class Wiktionary:
