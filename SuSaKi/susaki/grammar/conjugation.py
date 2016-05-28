@@ -124,7 +124,7 @@ class KPTChanger:
 
     def _is_valid_match(self, match, syllable_list, word):
         """
-        Validates that a match has been found and that the found 
+        Validates that a match has been found and that the found
         KPT-change would happen on the border between the last and second-to-last
         syllable of the word.
         """
@@ -151,7 +151,7 @@ class KPTChanger:
         return is_valid
 
     def _find_kpt_pattern(self, word, pattern_list):
-        """ 
+        """
         Using the prioritized list of patterns, return the first longest
         match together with its corresponding kpt_pattern.
         If the last letter in the word is a consonant, this letter is removed before looking for kpt-patterns.
@@ -167,7 +167,7 @@ class KPTChanger:
         return None, None
 
     def _get_diabolical_k_stem(self, word, to_strong):
-        """ 
+        """
         Check to see of the stem could be influenced by the diabolical k.
         If so the correct stem is returned. Otherwise None is returned
         """
