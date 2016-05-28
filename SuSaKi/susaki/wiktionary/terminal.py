@@ -29,16 +29,16 @@ class Definition:
 
     def __init__(self, pos):
         self.pos = pos
-        self.explanations = []
+        self.translations = []
 
-    def add_explanation(self, explanation):
-        self.explanations.append(explanation)
+    def add_translation(self, translation):
+        self.translations.append(translation)
 
 
-class Explanation:
+class Translation:
 
-    def __init__(self, explanation):
-        self.explanation = explanation
+    def __init__(self, translation):
+        self.translation = translation
         self.examples = []
 
     def add_example(self, example):
@@ -51,7 +51,7 @@ class Connector(metaclass=abc.ABCMeta):
         self.language = language
 
     @abc.abstractmethod
-    def collect_article(self, word):
+    def collect_raw_article(self, word):
         """Access Wiktionary to collect the article for the given word.
            Returns a HTTPError if the page doesn't exists.
            Returns a LookupError if the page does exists but no definitions exists for the given word
@@ -74,7 +74,7 @@ class RestfulConnector(Connector):
         return req
 
     def _extract_definitions(self, json_page):
-        """Return a list of dictionaries each containing information about a 
+        """Return a list of dictionaries each containing information about a
         different definition of the given word"""
         try:
             definition_list = json_page[self.language]
@@ -100,18 +100,18 @@ class RestfulConnector(Connector):
         definition_elements = definition_dict['definitions']
         for element in definition_elements:
             explanation_text = self._clean_line(element['definition'])
-            explanation = Explanation(explanation_text)
+            explanation = Translation(explanation_text)
             try:
                 examples = element['examples']
                 for example in examples:
                     explanation.add_example(self._clean_line(example))
             except KeyError:
                 pass
-            definition.add_explanation(explanation)
+            definition.add_translation(explanation)
 
         return definition
 
-    def collect_article(self, word):
+    def collect_raw_article(self, word):
         req = self._collect_page(word)
         # Test for bad response. Raises HTTPError if page doesn't exist
         req.raise_for_status()
@@ -156,13 +156,13 @@ class Wiktionary:
         print()
         for definition in article.definitions:
             print(definition.pos)
-            for explanation in definition.explanations:
-                print("  " + explanation.explanation)
+            for explanation in definition.translations:
+                print("  " + explanation.translation)
             print()
 
     def process_user_query(self, word):
         try:
-            article = self.connector.collect_article(word)
+            article = self.connector.collect_raw_article(word)
         except HTTPError:
             print(
                 '"{}" does not seem to have a page on Wiktionary'.format(word))

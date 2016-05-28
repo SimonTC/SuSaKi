@@ -6,7 +6,8 @@ Created on Apr 20, 2016
 
 import argparse
 from collections import defaultdict
-from susaki.wiktionary.connectors import RestfulConnector
+from susaki.wiktionary.connectors import HTMLConnector
+from susaki.wiktionary.parsing import HTMLParser
 from requests.exceptions import HTTPError
 
 
@@ -15,7 +16,8 @@ class Wiktionary:
     def __init__(self, language):
         self.language = language
         self._setup_command_dict()
-        self.connector = RestfulConnector(language)
+        self.connector = HTMLConnector(language)
+        self.parser = HTMLParser()
 
     def _setup_command_dict(self):
         self.command_dict = defaultdict(lambda: self.process_user_query)
@@ -27,33 +29,44 @@ class Wiktionary:
         return False
 
     def change_language(self, command):
-        new_language = input('Which language would you like to use?: >>')
-        old_language = self.language
-        self.connector = RestfulConnector(new_language)
-        print('The language was changed from {} to {}'.format(
-            old_language, self.connector.language))
+        print('Language change is currently not implemented')
+#         new_language = input('Which language would you like to use?: >>')
+#         old_language = self.language
+#         self.connector = RestfulConnector(new_language)
+#         print('The language was changed from {} to {}'.format(
+#             old_language, self.connector.language))
         return True
 
     def print_information(self, article):
-        print('Search term: {}'.format(article.word))
+        print('Search term: {}'.format(article['word']))
         print()
-        for definition in article.definitions:
-            print(definition.pos)
-            for explanation in definition.explanations:
-                print("  " + explanation.explanation)
-            print()
+        for etymology in article[self.language]['etymologies']:
+            for _, pos in etymology['parts-of-speech'].items():
+                print('{}'.format(pos['pos']))
+                for translation_tuple in pos['translations']:
+                    print('  ' + translation_tuple.translation)
+                print()
 
     def process_user_query(self, word):
         try:
-            article = self.connector.collect_article(word)
-        except HTTPError:
-            print(
-                '"{}" does not seem to have a page on Wiktionary'.format(word))
-        except IndexError:
-            print(
-                '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
-        else:
-            self.print_information(article)
+            raw_article = self.connector.collect_raw_article(word)
+            if type(raw_article) is list:
+                print(
+                    '{} does not have its own article, however it does exist in the articles for the following words:'.format(word))
+                for suggestion in raw_article:
+                    print(''.join(['  ', suggestion]))
+            else:
+                article = self.parser.parse_article(
+                    raw_article.content, word, self.language)
+                self.print_information(article)
+        except KeyError as error:
+            if 'No explanations exists for the language:' in str(error):
+                print(
+                    '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+            elif 'does not exist on Wiktionary' in str(error):
+                print(str(error).replace("'", ""))
+            else:
+                raise
         return True
 
     def greet_user(self, command):
@@ -93,7 +106,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Look for translations into English on wiktionary')
     parser.add_argument(
-        "-l", "--language", help="The language you want translations from", default="fi")
+        "-l", "--language", help="The language you want translations from", default="Finnish")
     args = parser.parse_args()
     language = args.language
     wiktionary = Wiktionary(language)
