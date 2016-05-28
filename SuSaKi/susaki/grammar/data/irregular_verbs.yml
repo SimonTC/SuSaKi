@@ -1,0 +1,15 @@
+#Dict containing the stems of verbs that are conjugated irregularily
+nähdä:
+   minä: näen
+   sinä: näet
+   hän: näkee
+   me: näemme
+   te: näette
+   he: näkevät
+tehdä: 
+   minä: teen
+   sinä: teet
+   hän: tekee
+   me: teemme
+   te: teette
+   he: tekevät

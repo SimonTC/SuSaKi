@@ -1,0 +1,210 @@
+1: 
+   puhua:
+      minä: puhun
+      sinä: puhut
+      hän: puhuu
+      me: puhumme
+      te: puhutte
+      he: puhuvat
+   kirjoittaa:
+      minä: kirjoitan
+      sinä: kirjoitat
+      hän: kirjoittaa
+      me: kirjoitamme
+      te: kirjoitatte
+      he: kirjoittavat
+   lukea:
+      minä: luen
+      sinä: luet
+      hän: lukee
+      me: luemme
+      te: luette
+      he: lukevat
+   ymmärtää:
+      minä: ymmärrän
+      sinä: ymmärrät
+      hän: ymmärtää
+      me: ymmärrämme
+      te: ymmärrätte
+      he: ymmärtävät
+2: 
+   syödä:
+      minä: syön
+      sinä: syöt
+      hän: syö
+      me: syömme
+      te: syötte
+      he: syövät
+   juoda:
+      minä: juon
+      sinä: juot
+      hän: juo
+      me: juomme
+      te: juotte
+      he: juovat
+   viedä:
+      minä: vien
+      sinä: viet
+      hän: vie
+      me: viemme
+      te: viette
+      he: vievät
+   imuroida:
+      minä: imuroin
+      sinä: imuroit
+      hän: imuroi
+      me: imuroimme
+      te: imuroitte
+      he: imuroivat
+3: 
+   ajatella:
+      minä: ajattelen
+      sinä: ajattelet
+      hän: ajattelee
+      me: ajattelemme
+      te: ajattelette
+      he: ajattelevat
+   esitellä:
+      minä: esittelen
+      sinä: esittelet
+      hän: esittelee
+      me: esittelemme
+      te: esittelette
+      he: esittelevät
+   purra:
+      minä: puren
+      sinä: puret
+      hän: puree
+      me: puremme
+      te: purette
+      he: purevat
+   pierrä:
+      minä: pieren
+      sinä: pieret
+      hän: pieree
+      me: pieremme
+      te: pierette
+      he: pierevät
+   mennä:
+      minä: menen
+      sinä: menet
+      hän: menee
+      me: menemme
+      te: menette
+      he: menevät
+   panna:
+      minä: panen
+      sinä: panet
+      hän: panee
+      me: panemme
+      te: panette
+      he: panevat
+   pestä:
+      minä: pesen
+      sinä: peset
+      hän: pesee
+      me: pesemme
+      te: pesette
+      he: pesevät
+   oikaista:
+      minä: oikaisen
+      sinä: oikaiset
+      hän: oikaisee
+      me: oikaisemme
+      te: oikaisette
+      he: oikaisevat
+4: 
+   haluta:
+      minä: haluan
+      sinä: haluat
+      hän: haluaa
+      me: haluamme
+      te: haluatte
+      he: haluavat
+   tavata:
+      minä: tapaan
+      sinä: tapaat
+      hän: tapaa
+      me: tapaamme
+      te: tapaatte
+      he: tapaavat
+   osata:
+      minä: osaan
+      sinä: osaat
+      hän: osaa
+      me: osaamme
+      te: osaatte
+      he: osaavat
+   pudota:
+      minä: putoan
+      sinä: putoat
+      hän: putoaa
+      me: putoamme
+      te: putoatte
+      he: putoavat
+   hypätä:
+      minä: hyppään
+      sinä: hyppäät
+      hän: hyppää
+      me: hyppäämme
+      te: hyppäätte
+      he: hyppäävät
+5: 
+   valita:
+      minä: valitsen
+      sinä: valitset
+      hän: valitsee
+      me: valitsemme
+      te: valitsette
+      he: valitsevat
+   tarvita:
+      minä: tarvitsen
+      sinä: tarvitset
+      hän: tarvitsee
+      me: tarvitsemme
+      te: tarvitsette
+      he: tarvitsevat
+   mainita:
+      minä: mainitsen
+      sinä: mainitset
+      hän: mainitsee
+      me: mainitsemme
+      te: mainitsette
+      he: mainitsevat
+   häiritä:
+      minä: häiritsen
+      sinä: häiritset
+      hän: häiritsee
+      me: häiritsemme
+      te: häiritsette
+      he: häiritsevät
+6: 
+   paeta:
+      minä: pakenen
+      sinä: pakenet
+      hän: pakenee
+      me: pakenemme
+      te: pakenette
+      he: pakenevat
+   kyetä:
+      minä: kykenen
+      sinä: kykenet
+      hän: kykenee
+      me: kykenemme
+      te: kykenette
+      he: kykenevät
+   vanheta:
+      minä: vanhenen
+      sinä: vanhenet
+      hän: vanhenee
+      me: vanhenemme
+      te: vanhenette
+      he: vanhenevat
+   pidetä:
+      minä: pitenen
+      sinä: pitenet
+      hän: pitenee
+      me: pitenemme
+      te: pitenette
+      he: pitenevät
+
