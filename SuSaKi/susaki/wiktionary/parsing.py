@@ -155,6 +155,69 @@ class HTMLParser():
         etymology_dict['parts-of-speech'] = pos_parts_dict
         return etymology_dict
 
+    def _extract_pos_parts(self, language_part):
+        pos_tags = language_part.find_all(text=re.compile(self.possible_word_classes), attrs={'class': 'mw-headline'})
+        pos_heading_tags = [tag.parent for tag in pos_tags]
+
+        # We can't be sure of the header levels so we need to extract them
+        # to know when to stop extracting
+        header_levels = {header.name for header in pos_heading_tags}
+        if len(header_levels) != 1:
+            # The wiktionary page is badly formatted.
+            # TODO: figure out what to do What to do?
+            logger.info('Different header levels')
+            return None
+        header_level = header_levels.pop()[1]
+        tag = pos_heading_tags[0]
+        # logger.debug('heading tags: {}'.format(pos_heading_tags))
+        # logger.debug('lenght: {}'.format(len(pos_heading_tags)))
+        # logger.debug('First header tag: {}'.format(pos_heading_tags[0]))
+        # logger.debug("First header's sibling: {}".format(tag.next_sibling))
+        pos_parts = []
+        pos_part = []
+        in_pos = True
+        while tag:
+            logger.debug(tag.name)
+            m = re.match(r'^h\d$', str(tag.name))
+            if m:
+                level = m.group(0)[1]
+                if level <= header_level:
+                    logger.debug('New header at same     or higher level found')
+                    if pos_part:
+                        logger.debug('Finishing pos part')
+                        pos_string = ''.join(str(pos_part))
+                        pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
+                        pos_part = []
+                    if tag in pos_heading_tags:
+                        logger.debug('Starting new pos part')
+                        in_pos = True
+                    else:
+                        in_pos = False
+            if in_pos:
+                pos_part.append(tag)
+            tag = tag.next_sibling
+
+        if pos_part:
+            logger.debug('Finishing pos part')
+            pos_string = ''.join(str(pos_part))
+            pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
+        logger.debug('Number of POS parts: {}'.format(len(pos_parts)))
+        for pos in pos_parts:
+            print(pos.prettify())
+            print('\n\n\n')
+
+        # print(header_level)
+        # pos_tag = language_part.find(text=re.compile(self.possible_word_classes), attrs={'class': 'mw-headline'})
+        # pos_tag = language_part.find(
+        #    'span', {'class': 'mw-headline', 'text': re.compile(self.possible_word_classes)})
+
+        # print(type(pos_tag))
+        # print(pos_tag)
+        # print(pos_tag.text)
+        # print(pos_tag.parent)
+        # print(type(pos_tag.parent))
+        pass
+
     def _parse_language_part(self, language_part, language):
         language_dict = {}
         etymology_parts = self._extract_parts(
@@ -178,8 +241,11 @@ class HTMLParser():
             'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
         language_part = self._extract_correct_language_part(
             main_content, language)
-        article_dict[language] = self._parse_language_part(
-            language_part, language)
+
+        self._extract_pos_parts(language_part)
+
+        # article_dict[language] = self._parse_language_part(
+        #     language_part, language)
 
         return article_dict
 
@@ -200,4 +266,4 @@ if __name__ == '__main__':
     parser = HTMLParser()
     req = requests.get(url)
     article_dict = parser.parse_article(req.content, word)
-    print_translations(article_dict)
+    # print_translations(article_dict)
