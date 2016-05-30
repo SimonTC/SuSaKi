@@ -5,8 +5,6 @@ Created on Apr 21, 2016
 '''
 import re
 
-import requests
-
 import logging
 
 from bs4 import BeautifulSoup
@@ -56,36 +54,6 @@ class HTMLParser():
 
         soup = BeautifulSoup(text_to_extract, 'html.parser')
         return soup
-
-    def _extract_language_part_border(self, language_tags, target_language):
-        """
-        Extract the language tag that comes after the target language tag.
-        """
-        has_seen_target_language = False
-        for tag in language_tags:
-            if has_seen_target_language:
-                return tag
-            elif tag.find_all('span', id=target_language):
-                has_seen_target_language = True
-        if not has_seen_target_language:
-            raise KeyError(
-                'No explanations exists for the language: {}'.format(target_language))
-        else:
-            return tag
-
-    def _extract_correct_language_part(self, raw_articles, source_language):
-        """
-        raw_articles: beautiful soup object containing the main content of the raw article
-        """
-        from_tag = raw_articles.find(
-            'span', {'class': 'mw-headline', 'id': source_language})
-        to_tag = self._extract_language_part_border(
-            raw_articles.find_all('h2'), source_language)
-        soup = self._extract_soup_between(from_tag, to_tag, raw_articles)
-        return soup
-
-    def _extract_pronounciation(self, article):
-        raise NotImplementedError
 
     def _extract_parts(self, parent_soup, tag_name, primary_id_expression, secondary_id_expression):
         """
@@ -145,17 +113,6 @@ class HTMLParser():
 
         # Extract compunds
         return pos_dict
-
-    def _parse_etymology_part(self, etymology_part):
-        etymology_dict = {}
-        POS_parts = self._extract_parts(
-            etymology_part, 'span', self.possible_word_classes, None)
-        pos_parts_dict = {}
-        for j, pos_part in enumerate(POS_parts):
-            pos_dict = self._parse_POS(pos_part)
-            pos_parts_dict['pos {}'.format(j)] = pos_dict
-        etymology_dict['parts-of-speech'] = pos_parts_dict
-        return etymology_dict
 
     def _extract_pos_parts(self, language_part):
         logger.debug('Starting extraction of POS-parts')
@@ -230,16 +187,6 @@ class HTMLParser():
                 'No explanations exists for the language: {}'.format(language))
         language_part = self._extract_soup_between(start_tag, end_tag, raw_article)
         return language_part
-
-    def _parse_language_part(self, language_part, language):
-        language_dict = {}
-        etymology_parts = self._extract_parts(
-            language_part, 'span', 'Etymology', self.possible_word_classes)
-        etymologies_list = []
-        for etymology in etymology_parts:
-            etymologies_list.append(self._parse_etymology_part(etymology))
-        language_dict['etymologies'] = etymologies_list
-        return language_dict
 
     def parse_article(self, raw_article, word, language='Finnish'):
         """
