@@ -22,6 +22,16 @@ class Connector(metaclass=abc.ABCMeta):
            in the target language """
         raise NotImplementedError
 
+class APIConnector:
+
+    def collect_raw_article(self, word):
+        url = 'https://en.wiktionary.org/w/api.php?format=xml&action=query&prop=revisions&titles={}&rvprop=content&rvparse&redirects=true'.format(word)
+        req = requests.get(url)
+        soup = BeautifulSoup(req.content, 'lxml')
+        content = soup.find('rev', {'xml:space': 'preserve'})
+        content_text = content.text
+        return content_text
+
 
 class HTMLConnector(Connector):
 
@@ -70,7 +80,9 @@ class HTMLConnector(Connector):
             return req
 
 if __name__ == '__main__':
-    collector = HTMLConnector('fi')
+    # collector = HTMLConnector('fi')
+    collector = APIConnector()
     word = 'sää'
 #     word = 'hkjhk'
-    collector.collect_raw_article(word)
+    text = collector.collect_raw_article(word)
+    print(text)
