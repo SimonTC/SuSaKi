@@ -92,7 +92,7 @@ class TestHTMLParser:
             raw_articles[word], parser)
         expected = BeautifulSoup(expected_language_parts[word], 'lxml')
         expected_text = str(expected)
-        expected_text = expected_text[12:-14]
+        # expected_text = expected_text[12:-14]
         assert str(language_part) == expected_text
 
     @pytest.mark.parametrize('word,expected', [

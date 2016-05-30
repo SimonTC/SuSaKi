@@ -22,6 +22,7 @@ example_tuple = namedtuple('example', 'example, translation')
 
 
 class HTMLParser():
+    PARSER = 'lxml'  #'html.parser' # 'lxml'
 
     possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix|Conjunction|Determiner|Exclamation|Preposition'
 
@@ -51,8 +52,8 @@ class HTMLParser():
                     break
             if start_extracting:
                 text_to_extract += line + '\n'
-        text_to_extract = text_to_extract[:-2]
-        soup = BeautifulSoup(text_to_extract, 'html.parser')
+        # text_to_extract = text_to_extract[:-2]
+        soup = BeautifulSoup(text_to_extract, self.PARSER)
         return soup
 
     def _extract_parts(self, parent_soup, tag_name, primary_id_expression, secondary_id_expression):
@@ -144,7 +145,7 @@ class HTMLParser():
                     if pos_part_lines:
                         logger.debug('Finishing pos part')
                         pos_string = ''.join(str(pos_part_lines))
-                        pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
+                        pos_parts.append(BeautifulSoup(pos_string, self.PARSER))
                         pos_part_lines = []
                     if tag in pos_header_tags:
                         logger.debug('Starting new pos part')
@@ -158,7 +159,7 @@ class HTMLParser():
         if pos_part_lines:
             logger.debug('Finishing pos part')
             pos_string = ''.join(str(pos_part_lines))
-            pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
+            pos_parts.append(BeautifulSoup(pos_string, self.PARSER))
         logger.debug('Number of POS parts: {}'.format(len(pos_parts)))
         return pos_parts
 
@@ -197,7 +198,7 @@ class HTMLParser():
             This language is used to do the translation into English
         """
         article_dict = {'word': word}
-        soup = BeautifulSoup(raw_article, 'lxml')
+        soup = BeautifulSoup(raw_article, self.PARSER)
         language_part = self._extract_language_part(soup, language)
         pos_parts = self._extract_pos_parts(language_part)
 
