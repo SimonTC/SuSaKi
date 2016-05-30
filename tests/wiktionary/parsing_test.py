@@ -6,8 +6,6 @@ Created on May 16, 2016
 import pytest
 import os
 from distutils import dir_util
-import requests
-from requests_file import FileAdapter
 from susaki.wiktionary.parsing import HTMLParser
 
 from bs4 import BeautifulSoup
@@ -41,11 +39,12 @@ class TestHTMLParser:
         article_dict = {}
         for article in os.listdir(str(datadir)):
             if article.endswith('.html'):
-                article_name = article.replace('.html', '')
+                article_name = os.path.splitext(article)[0]
                 article_path = '/'.join([str(datadir), article])
-                s = requests.Session()
-                s.mount('file://', FileAdapter())
-                article_dict[article_name] = s.get('file://' + article_path)
+                with open(article_path, 'r') as f:
+                    lines = f.readlines()
+                    content = ''.join(lines)
+                    article_dict[article_name] = content
         return article_dict
 
     @pytest.fixture
@@ -53,16 +52,13 @@ class TestHTMLParser:
         return HTMLParser()
 
     def extract_language_part(self, article, parser):
-        soup = BeautifulSoup(article, 'html.parser')
-        main_content = soup.find(
-            'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
-        language_part = parser._extract_correct_language_part(
-            main_content, 'Finnish')
+        soup = BeautifulSoup(article, 'lxml')
+        language_part = parser._extract_language_part(soup, 'Finnish')
         return language_part
 
-    def test_returns_dict_object(self, parser, raw_articles):
-        result = parser.parse_article(raw_articles['kuu'].content, 'kuu')
-        assert isinstance(result, dict)
+    # def test_returns_dict_object(self, parser, raw_articles):
+    #     result = parser.parse_article(raw_articles['kuu'].content, 'kuu')
+    #     assert isinstance(result, dict)
 
     @pytest.mark.parametrize('word, not_included', [
         ('kuu', ['Estonian', 'Ingrian', 'Votic']),
@@ -71,28 +67,28 @@ class TestHTMLParser:
         ('luen', ['Danish'])])
     def test_only_returns_article_about_correct_source_language(self, parser, raw_articles, word, not_included):
         language_part = self.extract_language_part(
-            raw_articles[word].content, parser)
+            raw_articles[word], parser)
         assert language_part.find(id='Finnish')
         for language in not_included:
             assert not language_part.find(id=language)
 
     def test_does_return_error_if_article_doesnt_contain_source_language(self, parser, raw_articles):
         with pytest.raises(KeyError) as exinfo:
-            language_part = self.extract_language_part(
-                raw_articles['hello'].content, parser)
+            self.extract_language_part(
+                raw_articles['hello'], parser)
         assert 'No explanations exists for the language:' in str(exinfo)
 
-    @pytest.mark.parametrize('word,expected', [
-        ('kuu', 3),
-        ('sää', 2),
-        ('luen', 1),
-        ('koira', 1)])
-    def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles, word, expected):
-        article = raw_articles[word]
-        language_part = self.extract_language_part(article.content, parser)
-        etymologies = parser._extract_parts(
-            language_part, 'span', 'Etymology', parser.possible_word_classes)
-        assert len(etymologies) == expected
+    # @pytest.mark.parametrize('word,expected', [
+    #     ('kuu', 3),
+    #     ('sää', 2),
+    #     ('luen', 1),
+    #     ('koira', 1)])
+    # def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles, word, expected):
+    #     article = raw_articles[word]
+    #     language_part = self.extract_language_part(article.content, parser)
+    #     etymologies = parser._extract_parts(
+    #         language_part, 'span', 'Etymology', parser.possible_word_classes)
+    #     assert len(etymologies) == expected
 
 #     def test_extracts_correct_pos_names(self):
 #         assert False
