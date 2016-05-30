@@ -51,7 +51,7 @@ class HTMLParser():
                     break
             if start_extracting:
                 text_to_extract += line + '\n'
-
+        text_to_extract = text_to_extract[:-2]
         soup = BeautifulSoup(text_to_extract, 'html.parser')
         return soup
 
