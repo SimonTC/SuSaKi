@@ -37,10 +37,11 @@ class TestHTMLParser:
     @pytest.fixture(scope='module')
     def raw_articles(self, datadir):
         article_dict = {}
-        for article in os.listdir(str(datadir)):
+        article_dir = '{}/raw_pages'.format(str(datadir))
+        for article in os.listdir(article_dir):
             if article.endswith('.html'):
                 article_name = os.path.splitext(article)[0]
-                article_path = '/'.join([str(datadir), article])
+                article_path = '/'.join([str(article_dir), article])
                 with open(article_path, 'r') as f:
                     lines = f.readlines()
                     content = ''.join(lines)
