@@ -203,9 +203,7 @@ class HTMLParser():
             pos_string = ''.join(str(pos_part_lines))
             pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
         logger.debug('Number of POS parts: {}'.format(len(pos_parts)))
-        for pos in pos_parts:
-            print(pos.prettify())
-            print('\n\n\n')
+        return pos_parts
 
     def _extract_language_part(self, raw_article, language):
         language_header_tags = raw_article.find_all('h2')
@@ -252,15 +250,9 @@ class HTMLParser():
             This language is used to do the translation into English
         """
         article_dict = {'word': word}
-        # soup = BeautifulSoup(raw_article, 'html.parser')
-        # main_content = soup.find(
-        #     'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
-        # language_part = self._extract_correct_language_part(
-        #     main_content, language)
         soup = BeautifulSoup(raw_article, 'lxml')
         language_part = self._extract_language_part(soup, language)
-
-        self._extract_pos_parts(language_part)
+        pos_parts = self._extract_pos_parts(language_part)
 
         # article_dict[language] = self._parse_language_part(
         #     language_part, language)
