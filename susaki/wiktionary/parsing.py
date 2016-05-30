@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 
 from collections import namedtuple
 
+from susaki.wiktionary.connectors import APIConnector
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -156,6 +158,7 @@ class HTMLParser():
         return etymology_dict
 
     def _extract_pos_parts(self, language_part):
+        logger.debug('Starting extraction of POS-parts')
         pos_tags = language_part.find_all(
             text=re.compile(self.possible_word_classes),
             attrs={'class': 'mw-headline'})
@@ -185,24 +188,50 @@ class HTMLParser():
                         logger.debug('Finishing pos part')
                         pos_string = ''.join(str(pos_part_lines))
                         pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
-                        pos_part = []
+                        pos_part_lines = []
                     if tag in pos_header_tags:
                         logger.debug('Starting new pos part')
                         in_pos = True
                     else:
                         in_pos = False
             if in_pos:
-                pos_part.append(tag)
+                pos_part_lines.append(tag)
             tag = tag.next_sibling
 
-        if pos_part:
+        if pos_part_lines:
             logger.debug('Finishing pos part')
-            pos_string = ''.join(str(pos_part))
+            pos_string = ''.join(str(pos_part_lines))
             pos_parts.append(BeautifulSoup(pos_string, 'lxml'))
         logger.debug('Number of POS parts: {}'.format(len(pos_parts)))
         for pos in pos_parts:
             print(pos.prettify())
             print('\n\n\n')
+
+    def _extract_language_part(self, raw_article, language):
+        language_header_tags = raw_article.find_all('h2')
+        start_tag = None
+        end_tag = None
+        logger.debug('Number of language headers: {}'.format(
+            len(language_header_tags)))
+        for i, language_header in enumerate(language_header_tags):
+            logger.debug('Checking header {}'.format(i))
+            if language_header.find(
+                    'span', {'class': 'mw-headline', 'id': language}):
+                start_tag = language_header
+                logger.debug('Start tag found')
+                try:
+                    end_tag = language_header_tags[i + 1]
+                    logger.debug('End tag found')
+                except IndexError:
+                    logger.debug('No end tag found')
+                    pass
+                finally:
+                    break
+        if not start_tag:
+            raise KeyError(
+                'No explanations exists for the language: {}'.format(language))
+        language_part = self._extract_soup_between(start_tag, end_tag, raw_article)
+        return language_part
 
     def _parse_language_part(self, language_part, language):
         language_dict = {}
@@ -216,17 +245,20 @@ class HTMLParser():
 
     def parse_article(self, raw_article, word, language='Finnish'):
         """
-        raw_article: html-document of the whole article for the word
+        raw_article: html-document of the whole article for the word.
+            Must have the same format as that returned by the Wiktionary API
         word: the word this article is about
         language: source language of the word.
             This language is used to do the translation into English
         """
         article_dict = {'word': word}
-        soup = BeautifulSoup(raw_article, 'html.parser')
-        main_content = soup.find(
-            'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
-        language_part = self._extract_correct_language_part(
-            main_content, language)
+        # soup = BeautifulSoup(raw_article, 'html.parser')
+        # main_content = soup.find(
+        #     'div', {'class': 'mw-content-ltr', 'id': 'mw-content-text'})
+        # language_part = self._extract_correct_language_part(
+        #     main_content, language)
+        soup = BeautifulSoup(raw_article, 'lxml')
+        language_part = self._extract_language_part(soup, language)
 
         self._extract_pos_parts(language_part)
 
@@ -248,8 +280,12 @@ def print_translations(article_dict):
 
 if __name__ == '__main__':
     word = 'sää'
-    url = 'https://en.wiktionary.org/wiki/{}'.format(word)
+    # url = 'https://en.wiktionary.org/wiki/{}'.format(word)
+    # parser = HTMLParser()
+    # req = requests.get(url)
+    # article_dict = parser.parse_article(req.content, word)
+    connector = APIConnector()
+    content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
-    req = requests.get(url)
-    article_dict = parser.parse_article(req.content, word)
+    article_dict = parser.parse_article(content_text, word)
     # print_translations(article_dict)
