@@ -34,10 +34,9 @@ def datadir(tmpdir_factory, request):
 
 class TestHTMLParser:
 
-    @pytest.fixture(scope='module')
-    def raw_articles(self, datadir):
+    def load_html_pages(self, datadir, sub_folder):
         article_dict = {}
-        article_dir = '{}/raw_pages'.format(str(datadir))
+        article_dir = '{}/{}'.format(str(datadir), sub_folder)
         for article in os.listdir(article_dir):
             if article.endswith('.html'):
                 article_name = os.path.splitext(article)[0]
@@ -47,6 +46,14 @@ class TestHTMLParser:
                     content = ''.join(lines)
                     article_dict[article_name] = content
         return article_dict
+
+    @pytest.fixture(scope='module')
+    def raw_articles(self, datadir):
+        return self.load_html_pages(datadir, 'raw_pages')
+
+    @pytest.fixture
+    def expected_language_parts(self, datadir):
+        return self.load_html_pages(datadir, 'expected_language_parts')
 
     @pytest.fixture
     def parser(self):
@@ -78,6 +85,15 @@ class TestHTMLParser:
             self.extract_language_part(
                 raw_articles['hello'], parser)
         assert 'No explanations exists for the language:' in str(exinfo)
+
+    @pytest.mark.parametrize('word', ['että', 'haluta', 'ilma', 'ilman', 'koira', 'kuu', 'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää'])
+    def test_does_return_correct_lanugage_parts(self, parser, expected_language_parts, raw_articles, word):
+        language_part = self.extract_language_part(
+            raw_articles[word], parser)
+        expected = BeautifulSoup(expected_language_parts[word], 'lxml')
+        expected_text = str(expected)
+        expected_text = expected_text[12:-14]
+        assert str(language_part) == expected_text
 
     @pytest.mark.parametrize('word,expected', [
         ('kuu', 3),
