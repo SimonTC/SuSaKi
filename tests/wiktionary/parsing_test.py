@@ -78,17 +78,17 @@ class TestHTMLParser:
                 raw_articles['hello'], parser)
         assert 'No explanations exists for the language:' in str(exinfo)
 
-    # @pytest.mark.parametrize('word,expected', [
-    #     ('kuu', 3),
-    #     ('sää', 2),
-    #     ('luen', 1),
-    #     ('koira', 1)])
-    # def test_returns_correct_number_of_etymology_parts(self, parser, raw_articles, word, expected):
-    #     article = raw_articles[word]
-    #     language_part = self.extract_language_part(article.content, parser)
-    #     etymologies = parser._extract_parts(
-    #         language_part, 'span', 'Etymology', parser.possible_word_classes)
-    #     assert len(etymologies) == expected
+    @pytest.mark.parametrize('word,expected', [
+        ('kuu', 3),
+        ('sää', 2),
+        ('luen', 1),
+        ('koira', 1)])
+    def test_does_return_correct_number_of_pos_parts(self, parser, raw_articles, word, expected):
+        article = raw_articles[word]
+        language_part = self.extract_language_part(article, parser)
+        pos_parts = parser._extract_pos_parts(language_part)
+        assert len(pos_parts) == expected
+
 
 #     def test_extracts_correct_pos_names(self):
 #         assert False
