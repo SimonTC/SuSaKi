@@ -94,7 +94,7 @@ class HTMLParser():
             # The wiktionary page is badly formatted.
             # TODO: figure out what to do What to do?
             logger.info('Different header levels')
-            return None
+            raise ValueError('The POS-parts are placed at different header levels')
         header_level = header_levels.pop()[1]
         tag = pos_header_tags[0]
         pos_parts = []
@@ -166,9 +166,6 @@ class HTMLParser():
         soup = BeautifulSoup(raw_article, self.PARSER)
         language_part = self._extract_language_part(soup, language)
         pos_parts = self._extract_pos_parts(language_part)
-
-        # article_dict[language] = self._parse_language_part(
-        #     language_part, language)
 
         return article_dict
 

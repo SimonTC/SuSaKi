@@ -86,7 +86,6 @@ class TestHTMLParser:
                 raw_articles['hello'], parser)
         assert 'No explanations exists for the language:' in str(exinfo)
 
-    #@pytest.mark.xfail
     @pytest.mark.parametrize('word', ['että', 'haluta', 'ilma', 'ilman', 'koira', 'kuu', 'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää'])
     def test_does_return_correct_lanugage_parts(self, parser, expected_language_parts, raw_articles, word):
         language_part = self.extract_language_part(
@@ -111,6 +110,15 @@ class TestHTMLParser:
         language_part = self.extract_language_part(article, parser)
         pos_parts = parser._extract_pos_parts(language_part)
         assert len(pos_parts) == expected
+
+    def test_pos_extraction_fails_on_bad_formatting(self, parser):
+        bad_html_lines = [
+            '<h4><span class="mw-headline" id="Noun">Noun</span><\h4>',
+            '<h3><span class="mw-headline" id="Verb">Noun</span><\h3>']
+        bad_html = '\n'.join(bad_html_lines)
+        with pytest.raises(ValueError):
+            bad_soup = BeautifulSoup(bad_html, 'lxml')
+            parser._extract_pos_parts(bad_soup)
 
 
 #     def test_extracts_correct_pos_names(self):
