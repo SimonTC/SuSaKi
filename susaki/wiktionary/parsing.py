@@ -29,32 +29,23 @@ class HTMLParser():
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """
         Extract all tags between the from and to tags in the given soup.
+        The from tag is included in the extracted tags.
         If to_tag doesn't exist, all text from the from_tag to the end of the page is returned.
-        The soup is converted to a string since there might be problems with
-        the html which prevents BeautifulSoup from working correctly.
         Returns a new soup object of the text between the two tags.
         """
-        start_extracting = False
-        text = str(soup)
-        text_array = text.split('\n')
-        text_to_extract = ''
-        from_tag_text = str(from_tag)
-        if to_tag:
-            no_to_tag = False
-            to_tag_text = str(to_tag)
-        else:
-            no_to_tag = True
-        for line in text_array:
-            if from_tag_text in line:
-                start_extracting = True
-            elif not no_to_tag:
-                if to_tag_text in line:
-                    break
-            if start_extracting:
-                text_to_extract += line + '\n'
-        # text_to_extract = text_to_extract[:-2]
-        soup = BeautifulSoup(text_to_extract, self.PARSER)
-        return soup
+        logger.debug('Extracting soup between two tags')
+        logger.debug('From tag: \n{}\n'.format(from_tag))
+        logger.debug('To tag: \n{}\n'.format(to_tag))
+        tags_between = []
+        next_ = from_tag
+        while True:
+            tags_between.append(str(next_))
+            next_ = next_.nextSibling
+            if not next_ or next_ == to_tag:
+                break
+        soup_text = ''.join(tags_between)
+        new_soup = BeautifulSoup(soup_text, self.PARSER)
+        return new_soup
 
     def _parse_POS(self, pos_part):
         pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
