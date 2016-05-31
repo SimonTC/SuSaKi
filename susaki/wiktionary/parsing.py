@@ -166,18 +166,23 @@ class HTMLParser():
         soup = BeautifulSoup(raw_article, self.PARSER)
         language_part = self._extract_language_part(soup, language)
         pos_parts = self._extract_pos_parts(language_part)
+        pos_dict_list = []
+        for pos_part in pos_parts:
+            pos_dict = self._parse_POS(pos_part)
+            pos_dict_list.append(pos_dict)
+        language_dict{'pos-parts': pos_dict_list}
+        article_dict[language] = language_dict
 
         return article_dict
 
 
 def print_translations(article_dict):
     print(article_dict['word'])
-    for etymology in \
-            article_dict['Finnish']['etymologies']:
-        for _, pos in etymology['parts-of-speech'].items():
-            print('   {}'.format(pos['pos']))
-            for translation_tuple in pos['translations']:
-                print('      - ' + translation_tuple.translation)
+    language_dict = article_dict['Finnish']
+    for pos_dict in language_dict['pos-parts']:
+        print('   {}'.format(pos_dict['pos']))
+        for translation_tuple in pos['translations']:
+            print('      - ' + translation_tuple.translation)
 
 
 if __name__ == '__main__':
