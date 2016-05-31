@@ -22,7 +22,7 @@ example_tuple = namedtuple('example', 'example, translation')
 
 
 class HTMLParser():
-    PARSER = 'lxml'  #'html.parser' # 'lxml'
+    PARSER = 'lxml'  # 'html.parser' # 'lxml'
 
     possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix|Conjunction|Determiner|Exclamation|Preposition'
 
@@ -55,32 +55,6 @@ class HTMLParser():
         # text_to_extract = text_to_extract[:-2]
         soup = BeautifulSoup(text_to_extract, self.PARSER)
         return soup
-
-    def _extract_parts(self, parent_soup, tag_name, primary_id_expression, secondary_id_expression):
-        """
-        Extract parts from the given soup.
-        parent_soup: soup from which parts are extracted.
-        tag_name: name of the tag that is deliminating the parts to be extracted.
-        primary_id_expression: regex expression to find the correct tags.
-        secondary_id_expression: regex expression to use if nothing is found with the primary expression.
-        """
-        part_boundaries = parent_soup.find_all(
-            tag_name, id=re.compile(primary_id_expression))
-        if not part_boundaries:
-            # This article does not used etymologies. Might happen when the
-            # word in question is a conjugation
-            part_boundaries = parent_soup.find_all(
-                tag_name, id=re.compile(secondary_id_expression))  # If no etymology is given, the next heading will contain the word class
-        parts = []
-        for i, boundary in enumerate(part_boundaries):
-            try:
-                part = self._extract_soup_between(
-                    boundary, part_boundaries[i + 1], parent_soup)
-            except IndexError:
-                part = self._extract_soup_between(
-                    boundary, None, parent_soup)
-            parts.append(part)
-        return parts
 
     def _parse_POS(self, pos_part):
         pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
