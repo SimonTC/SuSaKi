@@ -86,15 +86,20 @@ class TestHTMLParser:
                 raw_articles['hello'], parser)
         assert 'No explanations exists for the language:' in str(exinfo)
 
-    @pytest.mark.xfail
+    #@pytest.mark.xfail
     @pytest.mark.parametrize('word', ['että', 'haluta', 'ilma', 'ilman', 'koira', 'kuu', 'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää'])
     def test_does_return_correct_lanugage_parts(self, parser, expected_language_parts, raw_articles, word):
         language_part = self.extract_language_part(
             raw_articles[word], parser)
         expected = BeautifulSoup(expected_language_parts[word], 'lxml')
         expected_text = str(expected)
-        # expected_text = expected_text[12:-14]
-        assert str(language_part) == expected_text
+        # Need to remove the extra line break at the end of the file.
+        # Line break is automatically added by editors when saving the files
+        expected_text = expected_text
+        observed_text = str(language_part)
+        print('Expected text:\n{}\n'.format(expected_text))
+        print('Observed text:\n{}\n'.format(observed_text))
+        assert observed_text == expected_text
 
     @pytest.mark.parametrize('word,expected', [
         ('kuu', 3),
