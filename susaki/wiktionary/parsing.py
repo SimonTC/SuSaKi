@@ -53,16 +53,36 @@ class HTMLParser():
         # Extract translations + examples
         # The list of translations should always be the first list in the POS
         # part
-        translation_list = pos_part.find_all('ol')[0]
+        translation_list = pos_part.find('ol')
         # Each list item contains a translation together with eventual examples
-        translations = translation_list.find_all('li')
+        # translations = translation_list.find_all('li')
+        translations = translation_list.contents
         pos_translation_list = []
         for i, translation in enumerate(translations):
-            only_translation = self._extract_soup_between(
-                '<li>', '<dl>', translation)
-            translation_text = only_translation.get_text()
-            translation_text = translation_text.replace('\n', '')
-            examples = translation.find_all('dl')
+            translation_text_elements = []
+            children = translation.contents
+            for child in children:
+                logger.debug('Checking the following child:')
+                logger.debug(child)
+                if child.name != 'dl':
+                    try:
+                        child_text = child.text
+                    except AttributeError:
+                        # Child is a navigable string
+                        child_text = child
+                    child_text = child_text.replace('\n', '')
+                    translation_text_elements.append(child_text)
+
+            translation_text = ''.join(translation_text_elements)
+
+            #
+            # translation_text = ''.join(translation_text_elements)
+            # print(translation.text)
+            # only_translation = self._extract_soup_between(
+            #     '<li>', '<dl>', translation)
+            # translation_text = only_translation.get_text()
+            # translation_text = translation_text.replace('\n', '')
+            # examples = translation.find_all('dl')
             t = translation_tuple(translation=translation_text, examples=[])
             pos_translation_list.append(t)
         pos_dict['translations'] = pos_translation_list
@@ -170,7 +190,7 @@ class HTMLParser():
         for pos_part in pos_parts:
             pos_dict = self._parse_POS(pos_part)
             pos_dict_list.append(pos_dict)
-        language_dict{'pos-parts': pos_dict_list}
+        language_dict = {'pos-parts': pos_dict_list}
         article_dict[language] = language_dict
 
         return article_dict
@@ -181,7 +201,7 @@ def print_translations(article_dict):
     language_dict = article_dict['Finnish']
     for pos_dict in language_dict['pos-parts']:
         print('   {}'.format(pos_dict['pos']))
-        for translation_tuple in pos['translations']:
+        for translation_tuple in pos_dict['translations']:
             print('      - ' + translation_tuple.translation)
 
 
@@ -195,4 +215,4 @@ if __name__ == '__main__':
     content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
     article_dict = parser.parse_article(content_text, word)
-    # print_translations(article_dict)
+    print_translations(article_dict)
