@@ -47,44 +47,46 @@ class HTMLParser():
         new_soup = BeautifulSoup(soup_text, self.PARSER)
         return new_soup
 
+    def _extract_translations(self, pos_part):
+        logger.debug('**** Starting extraction of translations ****')
+        translation_list = pos_part.find('ol')
+        # Each list item contains a translation together with eventual examples
+        translations = translation_list.find_all('li', recursive=False)
+        logger.debug('Translations found: {}'.format(len(translations)))
+        pos_translation_list = []
+        for i, translation in enumerate(translations):
+            logger.debug('Extractig translation {}'.format(i))
+            translation_text_elements = []
+            try:
+                children = translation.contents
+            except AttributeError:
+                translation_text = translation.replace('\n', '')
+            else:
+                for i, child in enumerate(children):
+                    if child.name != 'dl':
+                        try:
+                            child_text = child.text
+                        except AttributeError:
+                            # Child is a navigable string
+                            child_text = child
+                        child_text = child_text.replace('\n', '')
+                        translation_text_elements.append(child_text)
+                    else:
+                        # There are examples
+                        examples = child
+                translation_text = ''.join(translation_text_elements)
+            logger.debug('Translation text: {}'.format(translation_text))
+            t = translation_tuple(translation=translation_text, examples=[])
+            pos_translation_list.append(t)
+        return pos_translation_list
+
     def _parse_POS(self, pos_part):
         pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
         pos_dict = {'pos': pos_type}
         # Extract translations + examples
         # The list of translations should always be the first list in the POS
         # part
-        translation_list = pos_part.find('ol')
-        # Each list item contains a translation together with eventual examples
-        # translations = translation_list.find_all('li')
-        translations = translation_list.contents
-        pos_translation_list = []
-        for i, translation in enumerate(translations):
-            translation_text_elements = []
-            children = translation.contents
-            for child in children:
-                logger.debug('Checking the following child:')
-                logger.debug(child)
-                if child.name != 'dl':
-                    try:
-                        child_text = child.text
-                    except AttributeError:
-                        # Child is a navigable string
-                        child_text = child
-                    child_text = child_text.replace('\n', '')
-                    translation_text_elements.append(child_text)
-
-            translation_text = ''.join(translation_text_elements)
-
-            #
-            # translation_text = ''.join(translation_text_elements)
-            # print(translation.text)
-            # only_translation = self._extract_soup_between(
-            #     '<li>', '<dl>', translation)
-            # translation_text = only_translation.get_text()
-            # translation_text = translation_text.replace('\n', '')
-            # examples = translation.find_all('dl')
-            t = translation_tuple(translation=translation_text, examples=[])
-            pos_translation_list.append(t)
+        pos_translation_list = self._extract_translations(pos_part)
         pos_dict['translations'] = pos_translation_list
 
         # Extract declension
@@ -199,14 +201,16 @@ class HTMLParser():
 def print_translations(article_dict):
     print(article_dict['word'])
     language_dict = article_dict['Finnish']
+    # logger.debug('Number of pos: {}'.format(len(language_dict['pos-parts'])))
     for pos_dict in language_dict['pos-parts']:
-        print('   {}'.format(pos_dict['pos']))
+        print('\n   {}'.format(pos_dict['pos']))
+        # logger.debug('Number of translations: {}'.format(len(pos_dict['translations'])))
         for translation_tuple in pos_dict['translations']:
             print('      - ' + translation_tuple.translation)
 
 
 if __name__ == '__main__':
-    word = 'sää'
+    word = 'kuu'
     # url = 'https://en.wiktionary.org/wiki/{}'.format(word)
     # parser = HTMLParser()
     # req = requests.get(url)
