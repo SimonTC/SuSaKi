@@ -64,9 +64,9 @@ class TestHTMLParser:
         language_part = parser._extract_language_part(soup, 'Finnish')
         return language_part
 
-    # def test_returns_dict_object(self, parser, raw_articles):
-    #     result = parser.parse_article(raw_articles['kuu'].content, 'kuu')
-    #     assert isinstance(result, dict)
+    def test_returns_dict_object(self, parser, raw_articles):
+        result = parser.parse_article(raw_articles['kuu'], 'kuu')
+        assert isinstance(result, dict)
 
     @pytest.mark.parametrize('word, not_included', [
         ('kuu', ['Estonian', 'Ingrian', 'Votic']),
