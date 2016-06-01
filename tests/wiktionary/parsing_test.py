@@ -32,6 +32,105 @@ def datadir(tmpdir_factory, request):
     return tmpdir_
 
 
+class TestLanguageExtraction:
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_only_language_in_article():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_first_language_in_article():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_last_language_in_article():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_between_other_languages():
+        assert False
+
+    @pytest.mark.xfail
+    def test_throw_exception_when_language_not_present_in_article():
+        assert False
+
+
+class TestPOSExtraction:
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_no_etymology_tags():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_only_single_POS():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_multiple_identical_POS_parts():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_when_multiple_different_POS_parts():
+        assert False
+
+    @pytest.mark.xfail
+    def test_POS_extraction_raises_error_if_POS_tags_on_different_levels():
+        assert False
+
+    @pytest.mark.xfail
+    def test_POS_extraction_raises_error_if_no_POS_tags_present():
+        assert False
+
+
+class TestTranslationExtraction:
+
+    @pytest.mark.xfail
+    def test_return_null_if_no_translations():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_only_one_translation():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_multiple_translations():
+        assert False
+
+
+class TestExampleExtraction:
+
+    @pytest.mark.xfail
+    def test_return_null_if_no_examples():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_example_and_its_translation_are_on_same_line():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_example_and_its_translation_are_on_different_lines():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_multiple_examples():
+        assert False
+
+
+class TestConjugationExtraction:
+
+    @pytest.mark.xfail
+    def test_return_null_if_no_conjugation_table():
+        assert False
+
+    @pytest.mark.xfail
+    def test_exract_verb_conjugation_table_correctly():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_noun_conjugation_table_correctly():
+        assert False
+
+
 class TestHTMLParser:
 
     def load_html_pages(self, datadir, sub_folder):
@@ -63,6 +162,9 @@ class TestHTMLParser:
         soup = BeautifulSoup(article, 'lxml')
         language_part = parser._extract_language_part(soup, 'Finnish')
         return language_part
+
+    def test_output_dict_formatted_correctly():
+        assert False
 
     def test_returns_dict_object(self, parser, raw_articles):
         result = parser.parse_article(raw_articles['kuu'], 'kuu')
