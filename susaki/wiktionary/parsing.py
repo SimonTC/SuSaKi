@@ -119,17 +119,17 @@ class HTMLParser():
             # TODO: figure out what to do What to do?
             logger.info('Different header levels')
             raise ValueError('The POS-parts are placed at different header levels')
-        header_level = header_levels.pop()[1]
+        pos_header_level = header_levels.pop()[1]
         tag = pos_header_tags[0]
         pos_parts = []
         pos_part_lines = []
         in_pos = True
         while tag:
             logger.debug(tag.name)
-            m = re.match(r'^h\d$', str(tag.name))
-            if m:
-                tag_level = m.group(0)[1]
-                if tag_level <= header_level:
+            header_match = re.match(r'^h\d$', str(tag.name))
+            if header_match:
+                header_level = header_match.group(0)[1]
+                if header_level <= pos_header_level:
                     logger.debug('New header at same or higher level found')
                     if pos_part_lines:
                         logger.debug('Finishing pos part')
@@ -160,8 +160,9 @@ class HTMLParser():
             len(language_header_tags)))
         for i, language_header in enumerate(language_header_tags):
             logger.debug('Checking header {}'.format(i))
-            if language_header.find(
-                    'span', {'class': 'mw-headline', 'id': language}):
+            target_language_found = language_header.find(
+                'span', {'class': 'mw-headline', 'id': language})
+            if target_language_found:
                 start_tag = language_header
                 logger.debug('Start tag found')
                 try:
