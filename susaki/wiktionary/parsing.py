@@ -13,6 +13,8 @@ from collections import namedtuple
 
 from susaki.wiktionary.connectors import APIConnector
 
+import argparse
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -210,11 +212,11 @@ def print_translations(article_dict):
 
 
 if __name__ == '__main__':
-    word = 'kuu'
-    # url = 'https://en.wiktionary.org/wiki/{}'.format(word)
-    # parser = HTMLParser()
-    # req = requests.get(url)
-    # article_dict = parser.parse_article(req.content, word)
+    arg_parser = argparse.ArgumentParser(
+        description='Look for translations into English on wiktionary')
+    arg_parser.add_argument('word')
+    args = arg_parser.parse_args()
+    word = args.word
     connector = APIConnector()
     content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
