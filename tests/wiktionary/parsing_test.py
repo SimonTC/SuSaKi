@@ -169,18 +169,20 @@ class TestPOSExtraction:
             '<h4><span class="mw-headline" id="Noun">Noun</span><\h4>',
             '<h3><span class="mw-headline" id="Verb">Noun</span><\h3>']
         bad_html = '\n'.join(bad_html_lines)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as error:
             bad_soup = BeautifulSoup(bad_html, 'lxml')
             parser._extract_pos_parts(bad_soup)
+        assert str(error.value) == 'The POS-parts are placed at different header levels'
 
     def test_raise_error_if_no_POS_tags_present(self, parser):
         bad_html_lines = [
-            '<h4><span class="mw-headline" id="Bob">Noun</span><\h4>',
-            '<h3><span class="mw-headline" id="Kimmie">Noun</span><\h3>']
+            '<h4><span class="mw-headline" id="Bob">Bob</span><\h4>',
+            '<h4><span class="mw-headline" id="Kimmie">Kimmie</span><\h4>']
         bad_html = '\n'.join(bad_html_lines)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as error:
             bad_soup = BeautifulSoup(bad_html, 'lxml')
             parser._extract_pos_parts(bad_soup)
+        assert str(error.value) == 'No POS-parts present'
 
 
 class TestTranslationExtraction:
