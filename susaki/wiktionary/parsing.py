@@ -14,8 +14,8 @@ from collections import namedtuple
 from susaki.wiktionary.connectors import APIConnector
 
 import argparse
-
-logging.basicConfig(level=logging.DEBUG)
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -26,7 +26,7 @@ example_tuple = namedtuple('example', 'example, translation')
 class HTMLParser():
     PARSER = 'lxml'  # 'html.parser' # 'lxml'
 
-    possible_word_classes = r'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix|Conjunction|Determiner|Exclamation|Preposition'
+    possible_word_classes = 'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix|Conjunction|Determiner|Exclamation|Preposition|Postposition|Prefix'
 
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """
@@ -104,52 +104,46 @@ class HTMLParser():
         # Extract compunds
         return pos_dict
 
+    def _get_pos_header_level(self, pos_tag_headers):
+        header_levels = {header.name for header in pos_tag_headers}
+        if len(header_levels) != 1:
+            raise ValueError('The POS-parts are placed at different header levels')
+        pos_header_level = header_levels.pop()[1]
+        return pos_header_level
+
+    def _tag_ends_pos_part(self, tag, pos_tag_header_level):
+        if not re.match(r'^h\d$', str(tag.name)):
+            return False
+        elif tag.name[1] > pos_tag_header_level:
+            return False
+        else:
+            return True
+
     def _extract_pos_parts(self, language_part):
-        logger.debug('Starting extraction of POS-parts')
         pos_tags = language_part.find_all(
             text=re.compile(self.possible_word_classes),
             attrs={'class': 'mw-headline'})
-        pos_header_tags = [tag.parent for tag in pos_tags]
-
-        # We can't be sure which level the pos headers are placed at,
-        # So we need to extract them.
-        header_levels = {header.name for header in pos_header_tags}
-        if len(header_levels) != 1:
-            # The wiktionary page is badly formatted.
-            # TODO: figure out what to do What to do?
-            logger.info('Different header levels')
-            raise ValueError('The POS-parts are placed at different header levels')
-        pos_header_level = header_levels.pop()[1]
-        tag = pos_header_tags[0]
+        logger.debug('Number of POS-tags in language part: {}'.format(len(pos_tags)))
+        pos_tag_headers = [tag.parent for tag in pos_tags]
+        pos_tag_header_level = self._get_pos_header_level(pos_tag_headers)
         pos_parts = []
-        pos_part_lines = []
-        in_pos = True
-        while tag:
-            logger.debug(tag.name)
-            header_match = re.match(r'^h\d$', str(tag.name))
-            if header_match:
-                header_level = header_match.group(0)[1]
-                if header_level <= pos_header_level:
-                    logger.debug('New header at same or higher level found')
-                    if pos_part_lines:
-                        logger.debug('Finishing pos part')
-                        pos_string = ''.join(str(pos_part_lines))
-                        pos_parts.append(BeautifulSoup(pos_string, self.PARSER))
-                        pos_part_lines = []
-                    if tag in pos_header_tags:
-                        logger.debug('Starting new pos part')
-                        in_pos = True
-                    else:
-                        in_pos = False
-            if in_pos:
-                pos_part_lines.append(tag)
-            tag = tag.next_sibling
-
-        if pos_part_lines:
-            logger.debug('Finishing pos part')
-            pos_string = ''.join(str(pos_part_lines))
-            pos_parts.append(BeautifulSoup(pos_string, self.PARSER))
-        logger.debug('Number of POS parts: {}'.format(len(pos_parts)))
+        start_tag = pos_tag_headers[0]
+        for tag in start_tag.next_siblings:
+            if start_tag and self._tag_ends_pos_part(tag, pos_tag_header_level):
+                logger.debug('Tag {} ends current pos part'.format(tag.name))
+                pos_part = self._extract_soup_between(start_tag, tag, language_part)
+                pos_parts.append(pos_part)
+                start_tag = None
+            tag_starts_new_pos_part = tag in pos_tag_headers
+            if tag_starts_new_pos_part:
+                logger.debug('Tag {} starts a new pos part'.format(tag.name))
+                start_tag = tag
+        if start_tag:
+            logger.debug('No tag to end last pos part. '
+                         'Extract from last start tag to end of language part')
+            pos_part = self._extract_soup_between(start_tag, None, language_part)
+            pos_parts.append(pos_part)
+        logger.debug('Found {} POS-tags in language part'.format(len(pos_parts)))
         return pos_parts
 
     def _extract_language_part(self, raw_article, language):
