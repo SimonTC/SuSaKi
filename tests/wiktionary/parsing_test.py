@@ -32,27 +32,72 @@ def datadir(tmpdir_factory, request):
     return tmpdir_
 
 
+def load_html_pages(datadir, sub_folder, to_soup=False):
+    article_dict = {}
+    article_dir = '{}/{}'.format(str(datadir), sub_folder)
+    for article in os.listdir(article_dir):
+        if article.endswith('.html'):
+            article_name = os.path.splitext(article)[0]
+            article_path = '/'.join([str(article_dir), article])
+            with open(article_path, 'r') as f:
+                lines = f.readlines()
+                content = ''.join(lines)
+                if to_soup:
+                    content = BeautifulSoup(content, 'lxml')
+                article_dict[article_name] = content
+    return article_dict
+
+
 class TestLanguageExtraction:
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_only_language_in_article():
-        assert False
+    @pytest.fixture(scope='module')
+    def raw_articles(self, datadir):
+        return load_html_pages(datadir, 'raw_pages')
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_first_language_in_article():
-        assert False
+    @pytest.fixture(scope='module')
+    def expected_language_parts(self, datadir):
+        return load_html_pages(datadir, 'expected_language_parts', to_soup=True)
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_last_language_in_article():
-        assert False
+    @pytest.fixture
+    def parser(self):
+        return HTMLParser()
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_between_other_languages():
-        assert False
+    def extract_language_part(self, article, parser):
+        soup = BeautifulSoup(article, 'lxml')
+        language_part = parser._extract_language_part(soup, 'Finnish')
+        return language_part
 
-    @pytest.mark.xfail
-    def test_throw_exception_when_language_not_present_in_article():
-        assert False
+    def output_is_as_expected(self, word, parser, expected_language_parts, raw_articles):
+        raw = raw_articles[word]
+        expected_output_soup = expected_language_parts[word]
+        observed_output = self.extract_language_part(raw, parser)
+        return expected_output_soup == observed_output
+
+    def test_extract_correctly_when_only_language_in_article_with_table_of_contents(self, parser, expected_language_parts, raw_articles):
+        word = 'että'
+        assert self.output_is_as_expected(word, parser, expected_language_parts, raw_articles)
+
+    def test_extract_correctly_when_only_language_in_article_without_table_of_contents(self, parser, expected_language_parts, raw_articles):
+        word = 'kuussa'
+        assert self.output_is_as_expected(word, parser, expected_language_parts, raw_articles)
+
+    def test_extract_correctly_when_first_language_in_article(self, parser, expected_language_parts, raw_articles):
+        word = 'koira'
+        assert self.output_is_as_expected(word, parser, expected_language_parts, raw_articles)
+
+    def test_extract_correctly_when_last_language_in_article(self, parser, expected_language_parts, raw_articles):
+        word = 'luen'
+        assert self.output_is_as_expected(word, parser, expected_language_parts, raw_articles)
+
+    def test_extract_correctly_when_between_other_languages(self, parser, expected_language_parts, raw_articles):
+        word = 'ilma'
+        assert self.output_is_as_expected(word, parser, expected_language_parts, raw_articles)
+
+    def test_throw_exception_when_language_not_present_in_article(self, parser, raw_articles):
+        with pytest.raises(KeyError) as exinfo:
+            self.extract_language_part(
+                raw_articles['hello'], parser)
+        assert 'No explanations exists for the language:' in str(exinfo)
 
 
 class TestPOSExtraction:
@@ -163,7 +208,8 @@ class TestHTMLParser:
         language_part = parser._extract_language_part(soup, 'Finnish')
         return language_part
 
-    def test_output_dict_formatted_correctly():
+    @pytest.mark.xfail
+    def test_output_dict_formatted_correctly(self):
         assert False
 
     def test_returns_dict_object(self, parser, raw_articles):
