@@ -216,38 +216,6 @@ class TestHTMLParser:
         result = parser.parse_article(raw_articles['kuu'], 'kuu')
         assert isinstance(result, dict)
 
-    @pytest.mark.parametrize('word, not_included', [
-        ('kuu', ['Estonian', 'Ingrian', 'Votic']),
-        ('ilma', ['Estonian', 'Maltese', 'Votic', 'Võro']),
-        ('koira', ['Karelian', 'Votic']),
-        ('luen', ['Danish'])])
-    def test_only_returns_article_about_correct_source_language(self, parser, raw_articles, word, not_included):
-        language_part = self.extract_language_part(
-            raw_articles[word], parser)
-        assert language_part.find(id='Finnish')
-        for language in not_included:
-            assert not language_part.find(id=language)
-
-    def test_does_return_error_if_article_doesnt_contain_source_language(self, parser, raw_articles):
-        with pytest.raises(KeyError) as exinfo:
-            self.extract_language_part(
-                raw_articles['hello'], parser)
-        assert 'No explanations exists for the language:' in str(exinfo)
-
-    @pytest.mark.parametrize('word', ['että', 'haluta', 'ilma', 'ilman', 'koira', 'kuu', 'kuussa', 'lähettää', 'luen', 'olla', 'päästä', 'sää'])
-    def test_does_return_correct_lanugage_parts(self, parser, expected_language_parts, raw_articles, word):
-        language_part = self.extract_language_part(
-            raw_articles[word], parser)
-        expected = BeautifulSoup(expected_language_parts[word], 'lxml')
-        expected_text = str(expected)
-        # Need to remove the extra line break at the end of the file.
-        # Line break is automatically added by editors when saving the files
-        expected_text = expected_text
-        observed_text = str(language_part)
-        print('Expected text:\n{}\n'.format(expected_text))
-        print('Observed text:\n{}\n'.format(observed_text))
-        assert observed_text == expected_text
-
     @pytest.mark.parametrize('word,expected', [
         ('kuu', 3),
         ('sää', 2),
