@@ -48,19 +48,27 @@ def load_html_pages(datadir, sub_folder, to_soup=False):
     return article_dict
 
 
+@pytest.fixture(scope='module')
+def raw_articles(datadir):
+    return load_html_pages(datadir, 'raw_pages')
+
+
+@pytest.fixture(scope='module')
+def expected_language_parts(datadir):
+    return load_html_pages(datadir, 'expected_language_parts', to_soup=True)
+
+
+@pytest.fixture(scope='module')
+def expected_pos_parts(datadir):
+    return load_html_pages(datadir, 'expected_pos_parts', to_soup=True)
+
+
+@pytest.fixture
+def parser():
+    return HTMLParser()
+
+
 class TestLanguageExtraction:
-
-    @pytest.fixture(scope='module')
-    def raw_articles(self, datadir):
-        return load_html_pages(datadir, 'raw_pages')
-
-    @pytest.fixture(scope='module')
-    def expected_language_parts(self, datadir):
-        return load_html_pages(datadir, 'expected_language_parts', to_soup=True)
-
-    @pytest.fixture
-    def parser(self):
-        return HTMLParser()
 
     def extract_language_part(self, article, parser):
         soup = BeautifulSoup(article, 'lxml')
@@ -102,25 +110,64 @@ class TestLanguageExtraction:
 
 class TestPOSExtraction:
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_no_etymology_tags():
-        assert False
+    def output_is_as_expected(self, word, parser, expected_pos_parts, expected_language_parts):
+        counter = 0
+        language_part = expected_language_parts[word]
+        observed_output_list = parser._extract_pos_parts(language_part)
+        while True:
+            try:
+                expected_output = expected_pos_parts['{}_{}'.format(word, counter)]
+            except IndexError:
+                # Don't need to test if extractor has extracted more than expected
+                # since this is already tested in other test.
+                return True
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_only_single_POS():
-        assert False
+            observed_output = observed_output_list[counter]
+            if expected_output != observed_output:
+                print('The expected output is not as the observed output')
+                print('Expected output:\n{}'.format(expected_output.prettify()))
+                print('\nObserved output:\n{}'.format(observed_output.prettify()))
+                return False
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_multiple_identical_POS_parts():
-        assert False
+    def extract_pos_parts(self, language_part, parser):
+        soup = BeautifulSoup(language_part, 'lxml')
+        pos_parts = parser._extract_pos_parts(soup)
+        return pos_parts
 
-    @pytest.mark.xfail
-    def test_extract_correctly_when_multiple_different_POS_parts():
-        assert False
+    @pytest.mark.parametrize('word,expected', [
+        ('kuu', 3),
+        ('sää', 2),
+        ('luen', 1),
+        ('koira', 1)])
+    def test_does_return_correct_number_of_pos_parts(self, parser, expected_language_parts, word, expected):
+        language_part = expected_language_parts[word]
+        pos_parts = parser._extract_pos_parts(language_part)
+        assert len(pos_parts) == expected
 
-    @pytest.mark.xfail
-    def test_POS_extraction_raises_error_if_POS_tags_on_different_levels():
-        assert False
+    def test_extract_correctly_when_no_etymology_tags(self, parser, expected_pos_parts, expected_language_parts):
+        word = 'ilman'
+        assert self.output_is_as_expected(word, parser, expected_pos_parts, expected_language_parts)
+
+    def test_extract_correctly_when_only_single_POS(self, parser, expected_pos_parts, expected_language_parts):
+        word = 'ilma'
+        assert self.output_is_as_expected(word, parser, expected_pos_parts, expected_language_parts)
+
+    def test_extract_correctly_when_multiple_identical_POS_tags(self, parser, expected_pos_parts, expected_language_parts):
+        word = 'kuu'
+        assert self.output_is_as_expected(word, parser, expected_pos_parts, expected_language_parts)
+
+    def test_extract_correctly_when_multiple_different_POS_tags(self, parser, expected_pos_parts, expected_language_parts):
+        word = 'päästä'
+        assert self.output_is_as_expected(word, parser, expected_pos_parts, expected_language_parts)
+
+    def test_POS_extraction_raises_error_if_POS_tags_on_different_levels(self, parser):
+        bad_html_lines = [
+            '<h4><span class="mw-headline" id="Noun">Noun</span><\h4>',
+            '<h3><span class="mw-headline" id="Verb">Noun</span><\h3>']
+        bad_html = '\n'.join(bad_html_lines)
+        with pytest.raises(ValueError):
+            bad_soup = BeautifulSoup(bad_html, 'lxml')
+            parser._extract_pos_parts(bad_soup)
 
     @pytest.mark.xfail
     def test_POS_extraction_raises_error_if_no_POS_tags_present():
@@ -215,27 +262,6 @@ class TestHTMLParser:
     def test_returns_dict_object(self, parser, raw_articles):
         result = parser.parse_article(raw_articles['kuu'], 'kuu')
         assert isinstance(result, dict)
-
-    @pytest.mark.parametrize('word,expected', [
-        ('kuu', 3),
-        ('sää', 2),
-        ('luen', 1),
-        ('koira', 1)])
-    def test_does_return_correct_number_of_pos_parts(self, parser, raw_articles, word, expected):
-        article = raw_articles[word]
-        language_part = self.extract_language_part(article, parser)
-        pos_parts = parser._extract_pos_parts(language_part)
-        assert len(pos_parts) == expected
-
-    def test_pos_extraction_fails_on_bad_formatting(self, parser):
-        bad_html_lines = [
-            '<h4><span class="mw-headline" id="Noun">Noun</span><\h4>',
-            '<h3><span class="mw-headline" id="Verb">Noun</span><\h3>']
-        bad_html = '\n'.join(bad_html_lines)
-        with pytest.raises(ValueError):
-            bad_soup = BeautifulSoup(bad_html, 'lxml')
-            parser._extract_pos_parts(bad_soup)
-
 
 #     def test_extracts_correct_pos_names(self):
 #         assert False
