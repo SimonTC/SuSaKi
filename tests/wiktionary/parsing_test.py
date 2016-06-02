@@ -117,6 +117,7 @@ class TestPOSExtraction:
         while True:
             try:
                 expected_output = expected_pos_parts['{}_{}'.format(word, counter)]
+                counter += 1
             except IndexError:
                 # Don't need to test if extractor has extracted more than expected
                 # since this is already tested in other test.
