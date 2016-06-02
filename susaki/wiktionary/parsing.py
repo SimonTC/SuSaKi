@@ -50,7 +50,7 @@ class HTMLParser():
         return new_soup
 
     def _extract_translations(self, pos_part):
-        logger.debug('**** Starting extraction of translations ****')
+        logger.debug('Starting extraction of translations')
         translation_list = pos_part.find('ol')
         # Each list item contains a translation together with eventual examples
         translations = translation_list.find_all('li', recursive=False)
@@ -123,7 +123,10 @@ class HTMLParser():
         pos_tags = language_part.find_all(
             text=re.compile(self.possible_word_classes),
             attrs={'class': 'mw-headline'})
-        logger.debug('Number of POS-tags in language part: {}'.format(len(pos_tags)))
+        num_pos_tags = len(pos_tags)
+        if num_pos_tags == 0:
+            raise ValueError('No POS-parts present')
+        logger.debug('Number of POS-tags in language part: {}'.format(num_pos_tags))
         pos_tag_headers = [tag.parent for tag in pos_tags]
         pos_tag_header_level = self._get_pos_header_level(pos_tag_headers)
         pos_parts = []

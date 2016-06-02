@@ -164,7 +164,7 @@ class TestPOSExtraction:
         word = 'päästä'
         assert self.output_is_as_expected(word, parser, expected_pos_parts, expected_language_parts)
 
-    def test_POS_extraction_raises_error_if_POS_tags_on_different_levels(self, parser):
+    def test_raise_error_if_POS_tags_on_different_levels(self, parser):
         bad_html_lines = [
             '<h4><span class="mw-headline" id="Noun">Noun</span><\h4>',
             '<h3><span class="mw-headline" id="Verb">Noun</span><\h3>']
@@ -173,15 +173,20 @@ class TestPOSExtraction:
             bad_soup = BeautifulSoup(bad_html, 'lxml')
             parser._extract_pos_parts(bad_soup)
 
-    @pytest.mark.xfail
-    def test_POS_extraction_raises_error_if_no_POS_tags_present():
-        assert False
+    def test_raise_error_if_no_POS_tags_present(self, parser):
+        bad_html_lines = [
+            '<h4><span class="mw-headline" id="Bob">Noun</span><\h4>',
+            '<h3><span class="mw-headline" id="Kimmie">Noun</span><\h3>']
+        bad_html = '\n'.join(bad_html_lines)
+        with pytest.raises(ValueError):
+            bad_soup = BeautifulSoup(bad_html, 'lxml')
+            parser._extract_pos_parts(bad_soup)
 
 
 class TestTranslationExtraction:
 
     @pytest.mark.xfail
-    def test_return_null_if_no_translations():
+    def test_raise_error_if_no_translations():
         assert False
 
     @pytest.mark.xfail
@@ -196,7 +201,7 @@ class TestTranslationExtraction:
 class TestExampleExtraction:
 
     @pytest.mark.xfail
-    def test_return_null_if_no_examples():
+    def test_raise_error_if_no_examples():
         assert False
 
     @pytest.mark.xfail
@@ -215,11 +220,11 @@ class TestExampleExtraction:
 class TestConjugationExtraction:
 
     @pytest.mark.xfail
-    def test_return_null_if_no_conjugation_table():
+    def test_raise_error_if_no_conjugation_table():
         assert False
 
     @pytest.mark.xfail
-    def test_exract_verb_conjugation_table_correctly():
+    def test_extract_verb_conjugation_table_correctly():
         assert False
 
     @pytest.mark.xfail
