@@ -116,9 +116,10 @@ class TestPOSExtraction:
         observed_output_list = parser._extract_pos_parts(language_part)
         while True:
             try:
-                expected_output = expected_pos_parts['{}_{}'.format(word, counter)]
-                counter += 1
-            except IndexError:
+                pos_part = '{}_{}'.format(word, counter)
+                print('Testing pos part {}'.format(pos_part))
+                expected_output = expected_pos_parts[pos_part]
+            except KeyError:
                 # Don't need to test if extractor has extracted more than expected
                 # since this is already tested in other test.
                 return True
@@ -129,6 +130,7 @@ class TestPOSExtraction:
                 print('Expected output:\n{}'.format(expected_output.prettify()))
                 print('\nObserved output:\n{}'.format(observed_output.prettify()))
                 return False
+            counter += 1
 
     def extract_pos_parts(self, language_part, parser):
         soup = BeautifulSoup(language_part, 'lxml')
@@ -139,7 +141,8 @@ class TestPOSExtraction:
         ('kuu', 3),
         ('sää', 2),
         ('luen', 1),
-        ('koira', 1)])
+        ('koira', 1),
+        ('päästä', 3)])
     def test_does_return_correct_number_of_pos_parts(self, parser, expected_language_parts, word, expected):
         language_part = expected_language_parts[word]
         pos_parts = parser._extract_pos_parts(language_part)
