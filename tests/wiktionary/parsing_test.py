@@ -63,6 +63,11 @@ def expected_pos_parts(datadir):
     return load_html_pages(datadir, 'expected_pos_parts', to_soup=True)
 
 
+@pytest.fixture(scope='module')
+def translation_extraction_parts(datadir):
+    return load_html_pages(datadir, 'translation_extraction_data', to_soup=True)
+
+
 @pytest.fixture
 def parser():
     return HTMLParser()
@@ -187,17 +192,57 @@ class TestPOSExtraction:
 
 class TestTranslationExtraction:
 
-    @pytest.mark.xfail
-    def test_raise_error_if_no_translations():
-        assert False
+    def output_is_as_expected(self, parser, input_, expected_output):
+        observed_output = parser._extract_translations(input_)
+        return observed_output == expected_output
 
-    @pytest.mark.xfail
-    def test_extract_correctly_if_only_one_translation():
-        assert False
+    def throws_error(self, parser, soup, err_type, expected_err_message):
+        with pytest.raises(err_type) as error:
+            parser._extract_pos_parts(soup)
+        return str(error.value) == expected_err_message
 
-    @pytest.mark.xfail
-    def test_extract_correctly_if_multiple_translations():
-        assert False
+    def test_extract_correct_translation_list_if_multiple_exists(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = translation_extraction_parts['input_with_multiple_ordered_lists']
+        expected_output = translation_extraction_parts['output_for_multiple_ordered_lists']
+        assert self.output_is_as_expected(parser, input_, expected_output)
+
+    def test_raise_error_if_no_translations(self, parser, translation_extraction_parts):
+        no_translation_list = translation_extraction_parts['no_translation_list']
+        no_translation_list_items = translation_extraction_parts['no_translation_list_items']
+        expected_err_message = 'No translations present'
+        expected_err_type = ValueError
+        assert self.throws_error(parser, no_translation_list, expected_err_type, expected_err_message)
+        assert self.throws_error(parser, no_translation_list_items, expected_err_type, expected_err_message)
+
+    def test_extract_correctly_if_only_one_translation(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = expected_pos_parts['ilman_1']
+        expected_output = translation_extraction_parts['only_one_translation']
+        assert self.output_is_as_expected(parser, input_, expected_output)
+
+    def test_extract_correctly_if_multiple_translations(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = expected_pos_parts['päästä_0']
+        expected_output = translation_extraction_parts['multiple_translations']
+        assert self.output_is_as_expected(parser, input_, expected_output)
+
+    def test_extract_correctly_if_examples(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = expected_pos_parts['ilma_0']
+        expected_output = translation_extraction_parts['translations_with_examples']
+        assert self.output_is_as_expected(parser, input_, expected_output)
+
+    def test_extract_correctly_if_no_examples(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = expected_pos_parts['kuu_0']
+        expected_output = translation_extraction_parts['translations_without_examples']
+        assert self.output_is_as_expected(parser, input_, expected_output)
+
+    def test_extract_correctly_when_pos_part_also_contains_items_other_than_translations(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = expected_pos_parts['päästä_0']
+        expected_output = translation_extraction_parts['not_only_translations']
+        assert self.output_is_as_expected(parser, input_, expected_output)
+
+    def test_extract_correctly_when_pos_part_only_contains_translations(self, parser, translation_extraction_parts, expected_pos_parts):
+        input_ = expected_pos_parts['ilman_1']
+        expected_output = translation_extraction_parts['only_translations']
+        assert self.output_is_as_expected(parser, input_, expected_output)
 
 
 class TestTranslationParsing:
@@ -206,6 +251,7 @@ class TestTranslationParsing:
     def test_parse_correctly_with_no_examples():
         assert False
 
+    @pytest.mark.xfail
     def test_parse_correctly_with_examples():
         assert False
 
@@ -237,6 +283,10 @@ class TestExampleParsing:
 
     @pytest.mark.xfail
     def test_parse_correctly_if_example_and_its_translation_are_on_different_lines():
+        assert False
+
+    @pytest.mark.xfail
+    def test_parse_correctly_with_source_reference():
         assert False
 
 
