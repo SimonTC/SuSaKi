@@ -200,6 +200,16 @@ class TestTranslationExtraction:
         assert False
 
 
+class TestTranslationParsing:
+
+    @pytest.mark.xfail
+    def test_parse_correctly_with_no_examples():
+        assert False
+
+    def test_parse_correctly_with_examples():
+        assert False
+
+
 class TestExampleExtraction:
 
     @pytest.mark.xfail
@@ -219,6 +229,17 @@ class TestExampleExtraction:
         assert False
 
 
+class TestExampleParsing:
+
+    @pytest.mark.xfail
+    def test_parse_correctly_if_example_and_its_translation_are_on_same_line():
+        assert False
+
+    @pytest.mark.xfail
+    def test_parse_correctly_if_example_and_its_translation_are_on_different_lines():
+        assert False
+
+
 class TestConjugationExtraction:
 
     @pytest.mark.xfail
@@ -231,6 +252,17 @@ class TestConjugationExtraction:
 
     @pytest.mark.xfail
     def test_extract_noun_conjugation_table_correctly():
+        assert False
+
+
+class TestConjugationParsing:
+
+    @pytest.mark.xfail
+    def test_parse_verb_conjugation_table_correctly():
+        assert False
+
+    @pytest.mark.xfail
+    def test_parse_noun_conjugation_table_correctly():
         assert False
 
 
