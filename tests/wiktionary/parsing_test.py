@@ -191,6 +191,8 @@ class TestPOSExtraction:
 
 
 class TestTranslationExtraction:
+    # TODO: Make testing of translation better. The need for splitting lines
+    # is not good
 
     def output_items_is_as_expected(self, parser, input_, expected_output_items):
         observed_output_items = parser._extract_translations(input_)
@@ -262,7 +264,11 @@ class TestTranslationParsing:
         assert False
 
     @pytest.mark.xfail
-    def test_parse_correctly_with_examples():
+    def test_parse_correctly_with_multiple_examples():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_one_example():
         assert False
 
 
@@ -273,15 +279,11 @@ class TestExampleExtraction:
         assert False
 
     @pytest.mark.xfail
-    def test_extract_correctly_if_example_and_its_translation_are_on_same_line():
-        assert False
-
-    @pytest.mark.xfail
-    def test_extract_correctly_if_example_and_its_translation_are_on_different_lines():
-        assert False
-
-    @pytest.mark.xfail
     def test_extract_correctly_if_multiple_examples():
+        assert False
+
+    @pytest.mark.xfail
+    def test_extract_correctly_if_one_example():
         assert False
 
 
