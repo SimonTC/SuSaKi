@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Translation>
+  <Text>weather</Text>
+  <HTML><a href="/wiki/weather" title="weather">weather</a></HTML>
+  <Examples>
+    <Example>
+      <Text>Millainen ilma tänään on?</Text>
+      <Translation>How is the weather today?</Translation>
+</Translation>
