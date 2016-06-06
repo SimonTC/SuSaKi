@@ -52,6 +52,14 @@ class HTMLParser():
     def _extract_translations(self, pos_part):
         logger.debug('Starting extraction of translations')
         translation_list = pos_part.find('ol')
+        translations = translation_list.find_all('li', recursive=False)
+        num_translations = len(translations)
+        logger.debug('Translations found: {}'.format(num_translations))
+        return translations
+
+    def _extract_translations0(self, pos_part):
+        logger.debug('Starting extraction of translations')
+        translation_list = pos_part.find('ol')
         # Each list item contains a translation together with eventual examples
         translations = translation_list.find_all('li', recursive=False)
         logger.debug('Translations found: {}'.format(len(translations)))
