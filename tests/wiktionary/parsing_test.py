@@ -201,6 +201,18 @@ class TestTranslationExtraction:
             parser._extract_pos_parts(soup)
         return str(error.value) == expected_err_message
 
+    @pytest.mark.parametrize('word,expected_count', [
+        ('ilma_0', 2),
+        ('ilman_1', 1),
+        ('kuu_0', 2),
+        ('päästä_0', 9),
+        ('päästä_1', 1)])
+    def test_extract_expected_number_of_translations(self, parser, expected_pos_parts, word, expected_count):
+        pos_part = expected_pos_parts[word]
+        translations = parser._extract_translations(pos_part)
+        num_translations = len(translations)
+        assert num_translations == expected_count
+
     def test_extract_correct_translation_list_if_multiple_exists(self, parser, translation_extraction_parts, expected_pos_parts):
         input_ = translation_extraction_parts['input_with_multiple_ordered_lists']
         expected_output = translation_extraction_parts['output_for_multiple_ordered_lists']
