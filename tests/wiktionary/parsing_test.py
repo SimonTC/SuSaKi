@@ -9,6 +9,7 @@ from distutils import dir_util
 from susaki.wiktionary.parsing import HTMLParser
 
 from bs4 import BeautifulSoup
+from lxml import etree
 
 
 @pytest.fixture(scope='module')
@@ -32,20 +33,31 @@ def datadir(tmpdir_factory, request):
     return tmpdir_
 
 
-def load_html_pages(datadir, sub_folder, to_soup=False):
+def load_text_files(datadir, sub_folder, extension, to_soup=False, remove_whitespace=False):
     article_dict = {}
     article_dir = '{}/{}'.format(str(datadir), sub_folder)
     for article in os.listdir(article_dir):
-        if article.endswith('.html'):
+        if article.endswith('.{}'.format(extension)):
             article_name = os.path.splitext(article)[0]
             article_path = '/'.join([str(article_dir), article])
             with open(article_path, 'r') as f:
                 lines = f.readlines()
+                if remove_whitespace:
+                    clean_lines= []
+                    for l in lines:
+                        l = l.replace('\n', '')
+                        l = l.strip()
+                        clean_lines.append(l)
+                    lines = clean_lines
                 content = ''.join(lines)
                 if to_soup:
                     content = BeautifulSoup(content, 'lxml')
                 article_dict[article_name] = content
     return article_dict
+
+
+def load_html_pages(datadir, sub_folder, to_soup=False):
+    return load_text_files(datadir, sub_folder, 'html', to_soup)
 
 
 @pytest.fixture(scope='module')
@@ -67,6 +79,13 @@ def expected_pos_parts(datadir):
 def translation_extraction_output(datadir):
     return load_html_pages(datadir, 'translation_extraction_data', to_soup=False)
 
+
+@pytest.fixture(scope='module')
+def translation_parsing_data(datadir):
+    html_dict = load_text_files(datadir, 'translation_parsing_data', extension='html')
+    xml_dict = load_text_files(datadir, 'translation_parsing_data', extension='xml', remove_whitespace=True)
+    combined_dicts = {**html_dict, **xml_dict}
+    return combined_dicts
 
 @pytest.fixture
 def parser():
@@ -259,17 +278,28 @@ class TestTranslationExtraction:
 
 class TestTranslationParsing:
 
-    @pytest.mark.xfail
-    def test_parse_correctly_with_no_examples():
-        assert False
+    def output_is_as_expected(self, parser, input_text, expected_output_text):
+        input_soup = BeautifulSoup(input_text, 'lxml')
+        expected_output = etree.fromstring(expected_output_text)
+        observed_output = parser._parse_translation(input_soup)
+        return etree.tostring(observed_output) == etree.tostring(expected_output)
+
+    def test_parse_correctly_with_no_examples(self, parser, translation_parsing_data):
+        input_text = translation_parsing_data['input_no_examples']
+        expected_output_text = translation_parsing_data['output_no_examples']
+        assert self.output_is_as_expected(parser, input_text, expected_output_text)
 
     @pytest.mark.xfail
-    def test_parse_correctly_with_multiple_examples():
-        assert False
+    def test_parse_correctly_with_multiple_examples(self, parser, translation_parsing_data):
+        input_text = translation_parsing_data['input_one_example']
+        expected_output_text = translation_parsing_data['output_one_example']
+        assert self.output_is_as_expected(parser, input_text, expected_output_text)
 
     @pytest.mark.xfail
-    def test_extract_correctly_if_one_example():
-        assert False
+    def test_extract_correctly_if_one_example(self, parser, translation_parsing_data):
+        input_text = translation_parsing_data['input_multiple_examples']
+        expected_output_text = translation_parsing_data['output_multiple_examples']
+        assert self.output_is_as_expected(parser, input_text, expected_output_text)
 
 
 class TestExampleExtraction:

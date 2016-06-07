@@ -8,6 +8,7 @@ import re
 import logging
 
 from bs4 import BeautifulSoup
+from lxml import etree
 
 from collections import namedtuple
 
@@ -61,6 +62,22 @@ class HTMLParser():
             raise ValueError('No translations present')
         logger.debug('Translations found: {}'.format(num_translations))
         return translations
+
+    def _parse_translation(self, translation):
+        logger.debug('Parsing translation part')
+        root = etree.Element('Translation')
+        for child in translation.contents:
+            if child.name != 'dl':
+                child_text_clean = child.text.replace('\n', '')
+                child_text_clean = child_text_clean.strip()
+                text_element = etree.Element('Text')
+                text_element.text = child_text_clean
+                root.append(text_element)
+            else:
+                # There are examples
+                examples = child
+
+        return root
 
     def _extract_translations0(self, pos_part):
         logger.debug('Starting extraction of translations')
