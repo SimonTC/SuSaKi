@@ -51,7 +51,7 @@ def load_text_files(datadir, sub_folder, extension, to_soup=False, remove_whites
                     lines = clean_lines
                 content = ''.join(lines)
                 if to_soup:
-                    content = BeautifulSoup(content, 'lxml')
+                    content = BeautifulSoup(content, 'html.parser')
                 article_dict[article_name] = content
     return article_dict
 
@@ -87,6 +87,7 @@ def translation_parsing_data(datadir):
     combined_dicts = {**html_dict, **xml_dict}
     return combined_dicts
 
+
 @pytest.fixture
 def parser():
     return HTMLParser()
@@ -95,7 +96,7 @@ def parser():
 class TestLanguageExtraction:
 
     def extract_language_part(self, article, parser):
-        soup = BeautifulSoup(article, 'lxml')
+        soup = BeautifulSoup(article, 'html.parser')
         language_part = parser._extract_language_part(soup, 'Finnish')
         return language_part
 
@@ -103,7 +104,11 @@ class TestLanguageExtraction:
         raw = raw_articles[word]
         expected_output_soup = expected_language_parts[word]
         observed_output = self.extract_language_part(raw, parser)
-        return expected_output_soup == observed_output
+        as_expected = expected_output_soup == observed_output
+        if not as_expected:
+            print('Observed:\n{}'.format(observed_output))
+            print('Expected:\n{}'.format(expected_output_soup))
+        return as_expected
 
     def test_extract_correctly_when_only_language_in_article_with_table_of_contents(self, parser, expected_language_parts, raw_articles):
         word = 'että'
@@ -243,9 +248,9 @@ class TestTranslationExtraction:
 
     def test_raise_error_if_no_translations(self, parser, translation_extraction_output):
         no_translation_list = translation_extraction_output['no_translation_list']
-        no_translation_list_soup = BeautifulSoup(no_translation_list, 'lxml')
+        no_translation_list_soup = BeautifulSoup(no_translation_list, 'html.parser')
         no_translation_list_items = translation_extraction_output['no_translation_list_items']
-        no_translation_list_items_soup = BeautifulSoup(no_translation_list_items, 'lxml')
+        no_translation_list_items_soup = BeautifulSoup(no_translation_list_items, 'html.parser')
         expected_err_message = 'No translations present'
         expected_err_type = ValueError
         assert self.throws_error(parser, no_translation_list_soup, expected_err_type, expected_err_message)
@@ -292,31 +297,15 @@ class TestTranslationParsing:
         expected_output_text = translation_parsing_data['output_no_examples']
         assert self.output_is_as_expected(parser, input_text, expected_output_text)
 
-    @pytest.mark.xfail
-    def test_parse_correctly_with_multiple_examples(self, parser, translation_parsing_data):
+    def test_parse_correctly_if_one_example(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_one_example']
         expected_output_text = translation_parsing_data['output_one_example']
         assert self.output_is_as_expected(parser, input_text, expected_output_text)
 
-    def test_extract_correctly_if_one_example(self, parser, translation_parsing_data):
+    def test_parse_correctly_with_multiple_examples(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_multiple_examples']
         expected_output_text = translation_parsing_data['output_multiple_examples']
         assert self.output_is_as_expected(parser, input_text, expected_output_text)
-
-
-class TestExampleExtraction:
-
-    @pytest.mark.xfail
-    def test_raise_error_if_no_examples():
-        assert False
-
-    @pytest.mark.xfail
-    def test_extract_correctly_if_multiple_examples():
-        assert False
-
-    @pytest.mark.xfail
-    def test_extract_correctly_if_one_example():
-        assert False
 
 
 class TestExampleParsing:
@@ -396,9 +385,6 @@ class TestHTMLParser:
     def test_output_dict_formatted_correctly(self):
         assert False
 
-    def test_returns_dict_object(self, parser, raw_articles):
-        result = parser.parse_article(raw_articles['kuu'], 'kuu')
-        assert isinstance(result, dict)
 
 #     def test_extracts_correct_pos_names(self):
 #         assert False
