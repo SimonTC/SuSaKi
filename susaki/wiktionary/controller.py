@@ -8,6 +8,7 @@ import argparse
 from collections import defaultdict
 from susaki.wiktionary.connectors import HTMLConnector, APIConnector
 from susaki.wiktionary.parsing import HTMLParser
+import re
 
 
 class Wiktionary:
@@ -59,6 +60,9 @@ class Wiktionary:
                     pass
 
     def process_user_query(self, word):
+        if re.match('^ *$', word):
+            return True
+        word = word.strip()
         try:
             raw_article = self.api_connector.collect_raw_article(word)
         except KeyError:
