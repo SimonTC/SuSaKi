@@ -20,7 +20,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 class HTMLParser():
-    PARSER = 'lxml'
+    PARSER = 'html.parser'
 
     possible_word_classes = ('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|'
                              'Suffix|Conjunction|Determiner|Exclamation|'
