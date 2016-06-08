@@ -1,7 +1,7 @@
 '''
 Created on Apr 21, 2016
 
-@author: simon
+@author: Simon T. Clement
 '''
 import re
 
@@ -71,41 +71,45 @@ class HTMLParser():
         clean = re.sub(r'  *', ' ', clean)
         return clean
 
-    def _parse_translation(self, translation):
+    def _parse_example(self, example_soup):
+        example_part_root = etree.Element('Examples')
+        example_elements = example_soup.find_all(
+            re.compile('dd|li'), recursive=False)
+        for example in example_elements:
+            example_root = etree.Element('Example')
+            example_part_root.append(example_root)
+            example_translation = example.find('dl')
+            try:
+                example_translation_text = example_translation.text
+            except AttributeError:
+                # Example is placed as a quotation insted of a standard example
+                example_text = example.text
+            else:
+                example_translation_text_clean = self._clean_text(
+                    example_translation_text)
+                # Remove translation to avoid having it show up in the example text
+                example_translation.clear()
+                example_text = example.text
+                example_translation_element = etree.Element('Translation')
+                example_translation_element.text = example_translation_text_clean
+                example_root.append(example_translation_element)
+
+            example_text_clean = self._clean_text(example_text)
+            example_text_element = etree.Element('Text')
+            example_text_element.text = example_text_clean
+            example_root.append(example_text_element)
+
+        example_soup.clear()
+        return example_part_root
+
+    def _parse_translation(self, translation_soup):
         logger.debug('Parsing translation part')
         root = etree.Element('Translation')
-        example_part = translation.find(re.compile('dl|ul'))
+        example_part = translation_soup.find(re.compile('dl|ul'))
         if example_part:
-            example_part_root = etree.Element('Examples')
+            example_part_root = self._parse_example(example_part)
             root.append(example_part_root)
-            example_elements = example_part.find_all(
-                re.compile('dd|li'), recursive=False)
-            for example in example_elements:
-                example_root = etree.Element('Example')
-                example_part_root.append(example_root)
-                example_translation = example.find('dl')
-                try:
-                    example_translation_text = example_translation.text
-                except AttributeError:
-                    # Example is placed as a quotation insted of a standard example
-                    example_text = example.text
-                else:
-                    example_translation_text_clean = self._clean_text(
-                        example_translation_text)
-                    # Remove translation to avoid having it show up in the example text
-                    example_translation.clear()
-                    example_text = example.text
-                    example_translation_element = etree.Element('Translation')
-                    example_translation_element.text = example_translation_text_clean
-                    example_root.append(example_translation_element)
-
-                example_text_clean = self._clean_text(example_text)
-                example_text_element = etree.Element('Text')
-                example_text_element.text = example_text_clean
-                example_root.append(example_text_element)
-
-            example_part.clear()
-        text = translation.text
+        text = translation_soup.text
         text_clean = self._clean_text(text)
         text_element = etree.Element('Text')
         text_element.text = text_clean
