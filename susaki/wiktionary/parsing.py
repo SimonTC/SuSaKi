@@ -72,32 +72,39 @@ class HTMLParser():
         logger.debug('Parsing translation part')
         root = etree.Element('Translation')
         examples_element_root = None
-        for child in translation.contents:
-            if child.name != 'dl':
-                logger.debug('Adding child to tree: {}'.format(child.name))
-                child_text_clean = self._clean_text(child.text)
-                text_element = etree.Element('Text')
-                text_element.text = child_text_clean
-                root.append(text_element)
-            else:
-                example_elements = child.find_all('dd', recursive=False)
-                example_text = example_elements[0].text
-                example_text_clean = self._clean_text(example_text)
-                example_translation = example_elements[1].text
-                example_translation_clean = self._clean_text(example_translation)
-                example_root = etree.Element('Example')
-                example_text_element = etree.Element('Text')
-                example_text_element.text = example_text_clean
-                example_root.append(example_text_element)
-                example_translation_element = etree.Element('Translation')
-                example_translation_element.text = example_translation_clean
-                example_root.append(example_translation_element)
-                try:
-                    examples_element_root.append(example_root)
-                except AttributeError:
-                    examples_element_root = etree.Element('Examples')
-                    examples_element_root.append(example_root)
-                    root.append(examples_element_root)
+        if '<dl>' in translation:
+            pass
+        else:
+            text_clean = self._clean_text(translation.text)
+            text_element = etree.Element('Text')
+            text_element.text = text_clean
+            root.append(text_element)
+        # for child in translation.contents:
+        #     if child.name != 'dl':
+        #         logger.debug('Adding child to tree: {}'.format(child.name))
+        #         child_text_clean = self._clean_text(child.text)
+        #         text_element = etree.Element('Text')
+        #         text_element.text = child_text_clean
+        #         root.append(text_element)
+        #     else:
+        #         example_elements = child.find_all('dd', recursive=False)
+        #         example_text = example_elements[0].text
+        #         example_text_clean = self._clean_text(example_text)
+        #         example_translation = example_elements[1].text
+        #         example_translation_clean = self._clean_text(example_translation)
+        #         example_root = etree.Element('Example')
+        #         example_text_element = etree.Element('Text')
+        #         example_text_element.text = example_text_clean
+        #         example_root.append(example_text_element)
+        #         example_translation_element = etree.Element('Translation')
+        #         example_translation_element.text = example_translation_clean
+        #         example_root.append(example_translation_element)
+        #         try:
+        #             examples_element_root.append(example_root)
+        #         except AttributeError:
+        #             examples_element_root = etree.Element('Examples')
+        #             examples_element_root.append(example_root)
+        #             root.append(examples_element_root)
 
         return root
 
@@ -234,5 +241,6 @@ if __name__ == '__main__':
     content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
     article_root = parser.parse_article(content_text, word)
-    print(article_root)
+    s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
+    print(s)
     # print_translations(article_dict)
