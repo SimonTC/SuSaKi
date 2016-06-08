@@ -22,6 +22,7 @@ class Connector(metaclass=abc.ABCMeta):
            in the target language """
         raise NotImplementedError
 
+
 class APIConnector:
 
     def collect_raw_article(self, word):
@@ -29,7 +30,10 @@ class APIConnector:
         req = requests.get(url)
         soup = BeautifulSoup(req.content, 'lxml')
         content = soup.find('rev', {'xml:space': 'preserve'})
-        content_text = content.text
+        try:
+            content_text = content.text
+        except AttributeError:
+            raise KeyError("Article can't be accessed by API")
         return content_text
 
 
@@ -82,7 +86,7 @@ class HTMLConnector(Connector):
 if __name__ == '__main__':
     # collector = HTMLConnector('fi')
     collector = APIConnector()
-    word = 'sää'
+    word = 'säälle'
 #     word = 'hkjhk'
     text = collector.collect_raw_article(word)
     print(text)

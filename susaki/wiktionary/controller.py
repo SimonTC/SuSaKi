@@ -6,7 +6,7 @@ Created on Apr 20, 2016
 
 import argparse
 from collections import defaultdict
-from susaki.wiktionary.connectors import HTMLConnector
+from susaki.wiktionary.connectors import HTMLConnector, APIConnector
 from susaki.wiktionary.parsing import HTMLParser
 
 
@@ -15,7 +15,8 @@ class Wiktionary:
     def __init__(self, language):
         self.language = language
         self._setup_command_dict()
-        self.connector = HTMLConnector(language)
+        self.api_connector = APIConnector()
+        self.html_connector = HTMLConnector(language)
         self.parser = HTMLParser()
 
     def _setup_command_dict(self):
@@ -36,36 +37,51 @@ class Wiktionary:
 #             old_language, self.connector.language))
         return True
 
-    def print_information(self, article):
-        print('Search term: {}'.format(article['word']))
-        print()
-        for etymology in article[self.language]['etymologies']:
-            for _, pos in etymology['parts-of-speech'].items():
-                print('{}'.format(pos['pos']))
-                for translation_tuple in pos['translations']:
-                    print('  ' + translation_tuple.translation)
-                print()
+    def print_information(self, article_root):
+        language_part = article_root.find('Languages').find('Finnish')
+        pos_parts = language_part.find('POS-parts')
+        for pos in pos_parts:
+            print('\n   {}'.format(pos.tag))
+            translations = pos.find('Translations')
+            for translation in translations:
+                print('')
+                text = translation.find('Text')
+                print('      - ' + text.text)
+                examples = translation.find('Examples')
+                try:
+                    for example in examples:
+                        print('        * ' + example.find('Text').text)
+                        try:
+                            print('          ' + example.find('Translation').text)
+                        except AttributeError:
+                            pass
+                except TypeError:
+                    pass
 
     def process_user_query(self, word):
         try:
-            raw_article = self.connector.collect_raw_article(word)
-            if type(raw_article) is list:
-                print(
-                    '{} does not have its own article, however it does exist in the articles for the following words:'.format(word))
-                for suggestion in raw_article:
-                    print(''.join(['  ', suggestion]))
-            else:
-                article = self.parser.parse_article(
-                    raw_article.content, word, self.language)
-                self.print_information(article)
-        except KeyError as error:
-            if 'No explanations exists for the language:' in str(error):
-                print(
-                    '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
-            elif 'does not exist on Wiktionary' in str(error):
-                print(str(error).replace("'", ""))
-            else:
-                raise
+            raw_article = self.api_connector.collect_raw_article(word)
+        except KeyError:
+            try:
+                raw_article = self.html_connector.collect_raw_article(word)
+            except KeyError as error:
+                if 'No explanations exists for the language:' in str(error):
+                    print(
+                        '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+                elif 'does not exist on Wiktionary' in str(error):
+                    print(str(error).replace("'", ""))
+                else:
+                    raise
+        if type(raw_article) is list:
+            print(
+                '{} does not have its own article, however it does exist in the articles for the following words:'.format(word))
+            for suggestion in raw_article:
+                print(''.join(['  ', suggestion]))
+        else:
+            article = self.parser.parse_article(
+                raw_article, word, self.language)
+            self.print_information(article)
+
         return True
 
     def greet_user(self, command):

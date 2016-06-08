@@ -81,17 +81,23 @@ class HTMLParser():
                 example_root = etree.Element('Example')
                 example_part_root.append(example_root)
                 example_translation = example.find('dl')
-                example_translation_text = example_translation.text
-                example_translation_text_clean = self._clean_text(example_translation_text)
-                example_translation.clear()
-                example_text = example.text
+                try:
+                    example_translation_text = example_translation.text
+                except AttributeError:
+                    # Example is placed as a quotation insted of a standard example
+                    example_text = example.text
+                else:
+                    example_translation_text_clean = self._clean_text(example_translation_text)
+                    example_translation.clear()
+                    example_text = example.text
+                    example_translation_element = etree.Element('Translation')
+                    example_translation_element.text = example_translation_text_clean
+                    example_root.append(example_translation_element)
+
                 example_text_clean = self._clean_text(example_text)
                 example_text_element = etree.Element('Text')
                 example_text_element.text = example_text_clean
                 example_root.append(example_text_element)
-                example_translation_element = etree.Element('Translation')
-                example_translation_element.text = example_translation_text_clean
-                example_root.append(example_translation_element)
 
             example_part.clear()
         text = translation.text
@@ -227,7 +233,10 @@ def print_translations(article_root):
             try:
                 for example in examples:
                     print('        * ' + example.find('Text').text)
-                    print('          ' + example.find('Translation').text)
+                    try:
+                        print('          ' + example.find('Translation').text)
+                    except AttributeError:
+                        pass
             except TypeError:
                 pass
 
