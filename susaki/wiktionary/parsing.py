@@ -103,25 +103,15 @@ class HTMLParser():
 
     def _parse_POS(self, pos_part):
         pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
-        pos_dict = {'pos': pos_type}
-        # Extract translations + examples
-        # The list of translations should always be the first list in the POS
-        # part
-        pos_translation_list = self._extract_translations(pos_part)
-        pos_dict['translations'] = pos_translation_list
+        pos_root = etree.Element(pos_type)
+        translations_root = etree.Element('Translations')
+        pos_root.append(translations_root)
+        translation_parts = self._extract_translations(pos_part)
+        for translation_part in translation_parts:
+            translation_element = self._parse_translation(translation_part)
+            translations_root.append(translation_element)
 
-        # Extract declension
-
-        # Extract usage notes
-
-        # Extract synonyms
-
-        # Extract related terms
-
-        # Extract Derived terms
-
-        # Extract compunds
-        return pos_dict
+        return pos_root
 
     def _get_pos_header_level(self, pos_tag_headers):
         header_levels = {header.name for header in pos_tag_headers}
@@ -203,18 +193,24 @@ class HTMLParser():
         language: source language of the word.
             This language is used to do the translation into English
         """
-        article_dict = {'word': word}
+        article_root = etree.Element('Article')
+        word_element = etree.Element('Word')
+        word_element.text = word
+        article_root.append(word_element)
+        languages_root = etree.Element('Languages')
+        article_root.append(languages_root)
+        language_element = etree.Element(language)
+        languages_root.append(language_element)
         soup = BeautifulSoup(raw_article, self.PARSER)
         language_part = self._extract_language_part(soup, language)
         pos_parts = self._extract_pos_parts(language_part)
-        pos_dict_list = []
+        pos_parts_root = etree.Element('POS-parts')
+        language_element.append(pos_parts_root)
         for pos_part in pos_parts:
-            pos_dict = self._parse_POS(pos_part)
-            pos_dict_list.append(pos_dict)
-        language_dict = {'pos-parts': pos_dict_list}
-        article_dict[language] = language_dict
+            pos_part_element = self._parse_POS(pos_part)
+            pos_parts_root.append(pos_part_element)
 
-        return article_dict
+        return article_root
 
 
 def print_translations(article_dict):
@@ -237,5 +233,6 @@ if __name__ == '__main__':
     connector = APIConnector()
     content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
-    article_dict = parser.parse_article(content_text, word)
-    print_translations(article_dict)
+    article_root = parser.parse_article(content_text, word)
+    print(article_root)
+    # print_translations(article_dict)
