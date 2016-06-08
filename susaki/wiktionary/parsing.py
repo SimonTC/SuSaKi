@@ -101,39 +101,6 @@ class HTMLParser():
 
         return root
 
-    def _extract_translations0(self, pos_part):
-        logger.debug('Starting extraction of translations')
-        translation_list = pos_part.find('ol')
-        # Each list item contains a translation together with eventual examples
-        translations = translation_list.find_all('li', recursive=False)
-        logger.debug('Translations found: {}'.format(len(translations)))
-        pos_translation_list = []
-        for i, translation in enumerate(translations):
-            logger.debug('Extractig translation {}'.format(i))
-            translation_text_elements = []
-            try:
-                children = translation.contents
-            except AttributeError:
-                translation_text = translation.replace('\n', '')
-            else:
-                for i, child in enumerate(children):
-                    if child.name != 'dl':
-                        try:
-                            child_text = child.text
-                        except AttributeError:
-                            # Child is a navigable string
-                            child_text = child
-                        child_text = child_text.replace('\n', '')
-                        translation_text_elements.append(child_text)
-                    else:
-                        # There are examples
-                        examples = child
-                translation_text = ''.join(translation_text_elements)
-            logger.debug('Translation text: {}'.format(translation_text))
-            t = translation_tuple(translation=translation_text, examples=[])
-            pos_translation_list.append(t)
-        return pos_translation_list
-
     def _parse_POS(self, pos_part):
         pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
         pos_dict = {'pos': pos_type}
