@@ -61,28 +61,29 @@ class Wiktionary:
     def process_user_query(self, word):
         try:
             raw_article = self.api_connector.collect_raw_article(word)
-        except KeyError as api_err:
-            if 'No explanations exists for the language:' in str(api_err):
-                print(
-                    '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
-                return True
-            else:
-                try:
-                    raw_article = self.html_connector.collect_raw_article(word)
-                except KeyError as error:
-                    if 'does not exist on Wiktionary' in str(error):
-                        print(str(error).replace("'", ""))
-                        return True
-                    else:
-                        raise
+        except KeyError:
+            try:
+                raw_article = self.html_connector.collect_raw_article(word)
+            except KeyError as error:
+                if 'does not exist on Wiktionary' in str(error):
+                    print(str(error).replace("'", ""))
+                    return True
+                else:
+                    raise
         if type(raw_article) is list:
             print(
                 '"{}" does not have its own article, however it does exist in the articles for the following words:'.format(word))
             for suggestion in raw_article:
                 print(''.join(['  ', suggestion]))
         else:
-            article = self.parser.parse_article(
-                raw_article, word, self.language)
+            try:
+                article = self.parser.parse_article(
+                    raw_article, word, self.language)
+            except KeyError as err:
+                if 'No explanations exists for the language:' in str(err):
+                    print(
+                        '"{}" does not seem to exists as a word in the {} - English dictionary'.format(word, self.language))
+                    return True
             self.print_information(article)
 
         return True
