@@ -10,8 +10,6 @@ import logging
 from bs4 import BeautifulSoup
 from lxml import etree
 
-from collections import namedtuple
-
 from susaki.wiktionary.connectors import APIConnector
 
 import argparse
@@ -20,28 +18,31 @@ logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
-translation_tuple = namedtuple('translation', 'translation, examples')
-example_tuple = namedtuple('example', 'example, translation')
-
 
 class HTMLParser():
-    PARSER = 'lxml'  # 'html.parser' # 'lxml'
+    PARSER = 'lxml'
 
-    possible_word_classes = 'Verb|Noun|Adjective|Numeral|Pronoun|Adverb|Suffix|Conjunction|Determiner|Exclamation|Preposition|Postposition|Prefix'
+    possible_word_classes = ('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|'
+                             'Suffix|Conjunction|Determiner|Exclamation|'
+                             'Preposition|Postposition|Prefix')
 
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """
         Extract all tags between the from and to tags in the given soup.
-        The from tag is included in the extracted tags.
-        If to_tag doesn't exist, all text from the from_tag to the end of the page is returned.
+        If to_tag is None, all tags from from_tag to the end of the soup are extracted.
         Returns a new soup object of the text between the two tags.
         """
         logger.debug('Extracting soup between two tags')
-        logger.debug('From tag: \n{}\n'.format(from_tag))
-        logger.debug('To tag: \n{}\n'.format(to_tag))
+        logger.debug('From tag: {}'.format(from_tag.name))
+        if to_tag:
+            name = to_tag.name
+        else:
+            name = None
+        logger.debug('To tag: {}'.format(name))
         tags_between = []
         next_ = from_tag
         while True:
+            logger.debug('Appending {}'.format(next_.name))
             tags_between.append(str(next_))
             next_ = next_.nextSibling
             if not next_ or next_ == to_tag:
@@ -50,9 +51,10 @@ class HTMLParser():
         new_soup = BeautifulSoup(soup_text, self.PARSER)
         return new_soup
 
-    def _extract_translations(self, pos_part):
+    def _extract_translations(self, pos_soup):
+        """Extracts all translations from the given part-of-speech soup"""
         logger.debug('Starting extraction of translations')
-        translation_list = pos_part.find('ol')
+        translation_list = pos_soup.find('ol')
         try:
             translations = translation_list.find_all('li', recursive=False)
         except AttributeError:
@@ -66,7 +68,7 @@ class HTMLParser():
     def _clean_text(self, text):
         clean = text.replace('\n', '')
         clean = clean.strip()
-        clean = re.sub('  *', ' ', clean)
+        clean = re.sub(r'  *', ' ', clean)
         return clean
 
     def _parse_translation(self, translation):
@@ -76,7 +78,8 @@ class HTMLParser():
         if example_part:
             example_part_root = etree.Element('Examples')
             root.append(example_part_root)
-            example_elements = example_part.find_all(re.compile('dd|li'), recursive=False)
+            example_elements = example_part.find_all(
+                re.compile('dd|li'), recursive=False)
             for example in example_elements:
                 example_root = etree.Element('Example')
                 example_part_root.append(example_root)
@@ -87,7 +90,9 @@ class HTMLParser():
                     # Example is placed as a quotation insted of a standard example
                     example_text = example.text
                 else:
-                    example_translation_text_clean = self._clean_text(example_translation_text)
+                    example_translation_text_clean = self._clean_text(
+                        example_translation_text)
+                    # Remove translation to avoid having it show up in the example text
                     example_translation.clear()
                     example_text = example.text
                     example_translation_element = etree.Element('Translation')
@@ -116,7 +121,6 @@ class HTMLParser():
         for translation_part in translation_parts:
             translation_element = self._parse_translation(translation_part)
             translations_root.append(translation_element)
-
         return pos_root
 
     def _get_pos_header_level(self, pos_tag_headers):
@@ -203,12 +207,15 @@ class HTMLParser():
         word_element = etree.Element('Word')
         word_element.text = word
         article_root.append(word_element)
+
         languages_root = etree.Element('Languages')
         article_root.append(languages_root)
         language_element = etree.Element(language)
         languages_root.append(language_element)
-        soup = BeautifulSoup(raw_article, self.PARSER)
-        language_part = self._extract_language_part(soup, language)
+
+        raw_soup = BeautifulSoup(raw_article, self.PARSER)
+        language_part = self._extract_language_part(raw_soup, language)
+
         pos_parts = self._extract_pos_parts(language_part)
         pos_parts_root = etree.Element('POS-parts')
         language_element.append(pos_parts_root)
