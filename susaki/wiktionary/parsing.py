@@ -8,7 +8,6 @@ import re
 import logging
 
 from bs4 import BeautifulSoup
-from bs4 import NavigableString
 from lxml import etree
 
 from collections import namedtuple
@@ -17,7 +16,7 @@ from susaki.wiktionary.connectors import APIConnector
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -67,6 +66,7 @@ class HTMLParser():
     def _clean_text(self, text):
         clean = text.replace('\n', '')
         clean = clean.strip()
+        clean = re.sub('  *', ' ', clean)
         return clean
 
     def _parse_translation(self, translation):
@@ -96,39 +96,6 @@ class HTMLParser():
         text_element = etree.Element('Text')
         text_element.text = text_clean
         root.append(text_element)
-        # if '<dl>' not in translation:
-        #     text_clean = self._clean_text(translation.text)
-        #     text_element = etree.Element('Text')
-        #     text_element.text = text_clean
-        #     root.append(text_element)
-        # else:
-        #     for child in translation.contents:
-        #         if child.name != 'dl':
-        #             logger.debug('Adding child to tree: {}'.format(child.name))
-        #             child_text_clean = self._clean_text(child.text)
-        #             text_element = etree.Element('Text')
-        #             text_element.text = child_text_clean
-        #             root.append(text_element)
-        #         else:
-                    # example_elements = child.find_all('dd', recursive=False)
-                    # example_text = example_elements[0].text
-                    # example_text_clean = self._clean_text(example_text)
-                    # example_translation = example_elements[1].text
-                    # example_translation_clean = self._clean_text(example_translation)
-                    # example_root = etree.Element('Example')
-                    # example_text_element = etree.Element('Text')
-                    # example_text_element.text = example_text_clean
-                    # example_root.append(example_text_element)
-                    # example_translation_element = etree.Element('Translation')
-                    # example_translation_element.text = example_translation_clean
-                    # example_root.append(example_translation_element)
-        #             try:
-        #                 examples_element_root.append(example_root)
-        #             except AttributeError:
-        #                 examples_element_root = etree.Element('Examples')
-        #                 examples_element_root.append(example_root)
-        #                 root.append(examples_element_root)
-
         return root
 
     def _parse_POS(self, pos_part):
@@ -243,16 +210,15 @@ class HTMLParser():
         return article_root
 
 
-def print_translations(article_dict):
-    print(article_dict['word'])
-    language_dict = article_dict['Finnish']
-    # logger.debug('Number of pos: {}'.format(len(language_dict['pos-parts'])))
-    for pos_dict in language_dict['pos-parts']:
-        print('\n   {}'.format(pos_dict['pos']))
-        # logger.debug('Number of translations: {}'.format(len(pos_dict['translations'])))
-        for translation_tuple in pos_dict['translations']:
-            print('      - ' + translation_tuple.translation)
-
+def print_translations(article_root):
+    language_part = article_root.find('Languages').find('Finnish')
+    pos_parts = language_part.find('POS-parts')
+    for pos in pos_parts:
+        print('\n   {}'.format(pos.tag))
+        translations = pos.find('Translations')
+        for translation in translations:
+            text = translation.find('Text')
+            print('      - ' + text.text)
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(
@@ -264,6 +230,6 @@ if __name__ == '__main__':
     content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
     article_root = parser.parse_article(content_text, word)
-    s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
-    print(s)
-    # print_translations(article_dict)
+    # s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
+    # print(s)
+    print_translations(article_root)
