@@ -61,20 +61,23 @@ class Wiktionary:
     def process_user_query(self, word):
         try:
             raw_article = self.api_connector.collect_raw_article(word)
-        except KeyError:
-            try:
-                raw_article = self.html_connector.collect_raw_article(word)
-            except KeyError as error:
-                if 'No explanations exists for the language:' in str(error):
-                    print(
-                        '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
-                elif 'does not exist on Wiktionary' in str(error):
-                    print(str(error).replace("'", ""))
-                else:
-                    raise
+        except KeyError as api_err:
+            if 'No explanations exists for the language:' in str(api_err):
+                print(
+                    '"{}" does not seem to exists as a word in the {}-en dictionary'.format(word, self.language))
+                return True
+            else:
+                try:
+                    raw_article = self.html_connector.collect_raw_article(word)
+                except KeyError as error:
+                    if 'does not exist on Wiktionary' in str(error):
+                        print(str(error).replace("'", ""))
+                        return True
+                    else:
+                        raise
         if type(raw_article) is list:
             print(
-                '{} does not have its own article, however it does exist in the articles for the following words:'.format(word))
+                '"{}" does not have its own article, however it does exist in the articles for the following words:'.format(word))
             for suggestion in raw_article:
                 print(''.join(['  ', suggestion]))
         else:

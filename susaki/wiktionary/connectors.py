@@ -71,13 +71,12 @@ class HTMLConnector(Connector):
                 raise KeyError(
                     'The word {} does not exist on Wiktionary'.format(word))
             else:
-                suggestions = search_results.select(
-                    '[class~=mw-search-results]')[0]
+                suggestions = search_results.find(
+                    'ul', attrs={'class': 'mw-search-results'})
                 suggested_words = []
                 for li in suggestions.find_all('li'):
-                    suggestion = li.select(
-                        '[class~=mw-search-result-heading]')[0]
-                    suggested_words.append(suggestion.next_element.string)
+                    suggestion = li.div.a.text
+                    suggested_words.append(suggestion)
                 return suggested_words
         else:
             # Page exists
