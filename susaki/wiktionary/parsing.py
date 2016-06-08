@@ -74,22 +74,31 @@ class HTMLParser():
         root = etree.Element('Translation')
         example_part = translation.find(re.compile('dl|ul'))
         if example_part:
-            example_root = etree.Element('Example')
-            root.append(example_root)
+            example_part_root = etree.Element('Examples')
+            root.append(example_part_root)
             example_elements = example_part.find_all(re.compile('dd|li'), recursive=False)
-            example_text = example_elements[0].text
-            example_text_clean = self._clean_text(example_text)
-            example_text_element = etree.Element('Text')
-            example_text_element.text = example_text_clean
-            example_root.append(example_text_element)
-            try:
-                example_translation = example_elements[1].text
-                example_translation_clean = self._clean_text(example_translation)
-                example_translation_element = etree.Element('Translation')
-                example_translation_element.text = example_translation_clean
-                example_root.append(example_translation_element)
-            except IndexError:
-                pass
+            for example in example_elements:
+                example_root = etree.Element('Example')
+                example_part_root.append(example_root)
+                example_text = example.text
+                example_text_clean = self._clean_text(example_text)
+                example_root.text = example_text_clean
+                # example_root = etree.Element('Example')
+                # example_part_root.append(example_root)
+                # example_elements = example_part.find_all(re.compile('dd|li'), recursive=False)
+                # example_text = example_elements[0].text
+                # example_text_clean = self._clean_text(example_text)
+                # example_text_element = etree.Element('Text')
+                # example_text_element.text = example_text_clean
+                # example_root.append(example_text_element)
+                # try:
+                #     example_translation = example_elements[1].text
+                #     example_translation_clean = self._clean_text(example_translation)
+                #     example_translation_element = etree.Element('Translation')
+                #     example_translation_element.text = example_translation_clean
+                #     example_root.append(example_translation_element)
+                # except IndexError:
+                #     pass
             example_part.clear()
         text = translation.text
         text_clean = self._clean_text(text)
@@ -219,6 +228,12 @@ def print_translations(article_root):
         for translation in translations:
             text = translation.find('Text')
             print('      - ' + text.text)
+            examples = translation.find('Examples')
+            try:
+                for example in examples:
+                    print('        * ' + example.text)
+            except TypeError:
+                pass
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(
@@ -230,6 +245,6 @@ if __name__ == '__main__':
     content_text = connector.collect_raw_article(word)
     parser = HTMLParser()
     article_root = parser.parse_article(content_text, word)
-    # s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
-    # print(s)
+    s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
+    print(s)
     print_translations(article_root)
