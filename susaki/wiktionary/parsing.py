@@ -63,19 +63,41 @@ class HTMLParser():
         logger.debug('Translations found: {}'.format(num_translations))
         return translations
 
+    def _clean_text(self, text):
+        clean = text.replace('\n', '')
+        clean = clean.strip()
+        return clean
+
     def _parse_translation(self, translation):
         logger.debug('Parsing translation part')
         root = etree.Element('Translation')
+        examples_element_root = None
         for child in translation.contents:
             if child.name != 'dl':
-                child_text_clean = child.text.replace('\n', '')
-                child_text_clean = child_text_clean.strip()
+                logger.debug('Adding child to tree: {}'.format(child.name))
+                child_text_clean = self._clean_text(child.text)
                 text_element = etree.Element('Text')
                 text_element.text = child_text_clean
                 root.append(text_element)
             else:
-                # There are examples
-                examples = child
+                example_elements = child.find_all('dd', recursive=False)
+                example_text = example_elements[0].text
+                example_text_clean = self._clean_text(example_text)
+                example_translation = example_elements[1].text
+                example_translation_clean = self._clean_text(example_translation)
+                example_root = etree.Element('Example')
+                example_text_element = etree.Element('Text')
+                example_text_element.text = example_text_clean
+                example_root.append(example_text_element)
+                example_translation_element = etree.Element('Translation')
+                example_translation_element.text = example_translation_clean
+                example_root.append(example_translation_element)
+                try:
+                    examples_element_root.append(example_root)
+                except AttributeError:
+                    examples_element_root = etree.Element('Examples')
+                    examples_element_root.append(example_root)
+                    root.append(examples_element_root)
 
         return root
 

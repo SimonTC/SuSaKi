@@ -43,7 +43,7 @@ def load_text_files(datadir, sub_folder, extension, to_soup=False, remove_whites
             with open(article_path, 'r') as f:
                 lines = f.readlines()
                 if remove_whitespace:
-                    clean_lines= []
+                    clean_lines = []
                     for l in lines:
                         l = l.replace('\n', '')
                         l = l.strip()
@@ -277,12 +277,15 @@ class TestTranslationExtraction:
 
 
 class TestTranslationParsing:
-
     def output_is_as_expected(self, parser, input_text, expected_output_text):
-        input_soup = BeautifulSoup(input_text, 'lxml')
+        input_soup = BeautifulSoup(input_text, 'html.parser')
         expected_output = etree.fromstring(expected_output_text)
         observed_output = parser._parse_translation(input_soup)
-        return etree.tostring(observed_output) == etree.tostring(expected_output)
+        observed_output_string = etree.tostring(observed_output)
+        expected_output_string = etree.tostring(expected_output)
+        print('Observed\n{}'.format(observed_output_string))
+        print('Expected\n{}'.format(expected_output_string))
+        return observed_output_string == expected_output_string
 
     def test_parse_correctly_with_no_examples(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_no_examples']
@@ -295,7 +298,6 @@ class TestTranslationParsing:
         expected_output_text = translation_parsing_data['output_one_example']
         assert self.output_is_as_expected(parser, input_text, expected_output_text)
 
-    @pytest.mark.xfail
     def test_extract_correctly_if_one_example(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_multiple_examples']
         expected_output_text = translation_parsing_data['output_multiple_examples']
