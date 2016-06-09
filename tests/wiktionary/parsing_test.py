@@ -88,6 +88,14 @@ def translation_parsing_data(datadir):
     return combined_dicts
 
 
+@pytest.fixture(scope='module')
+def example_parsing_data(datadir):
+    html_dict = load_text_files(datadir, 'example_parsing_data', extension='html')
+    xml_dict = load_text_files(datadir, 'example_parsing_data', extension='xml', remove_whitespace=True)
+    combined_dicts = {**html_dict, **xml_dict}
+    return combined_dicts
+
+
 @pytest.fixture
 def parser():
     return HTMLParser()
@@ -281,46 +289,61 @@ class TestTranslationExtraction:
         assert self.output_items_is_as_expected(parser, input_, expected_output_items)
 
 
-class TestTranslationParsing:
-    def output_is_as_expected(self, parser, input_text, expected_output_text):
+class HTML_To_XML_Parsing:
+    def output_is_as_expected(self, parsing_function, input_text, expected_output_text):
         input_soup = BeautifulSoup(input_text, 'html.parser')
         expected_output = etree.fromstring(expected_output_text)
-        observed_output = parser._parse_translation(input_soup)
+        observed_output = parsing_function(input_soup)
         observed_output_string = etree.tostring(observed_output)
         expected_output_string = etree.tostring(expected_output)
         print('Observed\n{}'.format(observed_output_string))
         print('Expected\n{}'.format(expected_output_string))
         return observed_output_string == expected_output_string
 
+
+class TestTranslationParsing(HTML_To_XML_Parsing):
+    # def output_is_as_expected(self, parser, input_text, expected_output_text):
+    #     input_soup = BeautifulSoup(input_text, 'html.parser')
+    #     expected_output = etree.fromstring(expected_output_text)
+    #     observed_output = parser._parse_translation(input_soup)
+    #     observed_output_string = etree.tostring(observed_output)
+    #     expected_output_string = etree.tostring(expected_output)
+    #     print('Observed\n{}'.format(observed_output_string))
+    #     print('Expected\n{}'.format(expected_output_string))
+    #     return observed_output_string == expected_output_string
+
     def test_parse_correctly_with_no_examples(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_no_examples']
         expected_output_text = translation_parsing_data['output_no_examples']
-        assert self.output_is_as_expected(parser, input_text, expected_output_text)
+        assert self.output_is_as_expected(parser._parse_translation, input_text, expected_output_text)
 
     def test_parse_correctly_if_one_example(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_one_example']
         expected_output_text = translation_parsing_data['output_one_example']
-        assert self.output_is_as_expected(parser, input_text, expected_output_text)
+        assert self.output_is_as_expected(parser._parse_translation, input_text, expected_output_text)
 
     def test_parse_correctly_with_multiple_examples(self, parser, translation_parsing_data):
         input_text = translation_parsing_data['input_multiple_examples']
         expected_output_text = translation_parsing_data['output_multiple_examples']
-        assert self.output_is_as_expected(parser, input_text, expected_output_text)
+        assert self.output_is_as_expected(parser._parse_translation, input_text, expected_output_text)
 
 
-class TestExampleParsing:
+class TestExampleParsing(HTML_To_XML_Parsing):
 
-    @pytest.mark.xfail
-    def test_parse_correctly_if_example_and_its_translation_are_on_same_line():
-        assert False
+    def test_parse_correctly_if_example_and_its_translation_are_on_same_line(self, parser, example_parsing_data):
+        input_text = example_parsing_data['input_same_line_list']
+        expected_output_text = example_parsing_data['output_same_line']
+        assert self.output_is_as_expected(parser._parse_example, input_text, expected_output_text)
 
-    @pytest.mark.xfail
-    def test_parse_correctly_if_example_and_its_translation_are_on_different_lines():
-        assert False
+    def test_parse_correctly_if_example_and_its_translation_are_on_different_lines(self, parser, example_parsing_data):
+        input_text = example_parsing_data['input_two_lines']
+        expected_output_text = example_parsing_data['output_two_lines']
+        assert self.output_is_as_expected(parser._parse_example, input_text, expected_output_text)
 
-    @pytest.mark.xfail
-    def test_parse_correctly_if_example_is_made_as_quotation():
-        assert False
+    def test_parse_correctly_if_example_is_made_as_quotation(self, parser, example_parsing_data):
+        input_text = example_parsing_data['input_quotation']
+        expected_output_text = example_parsing_data['output_quotation']
+        assert self.output_is_as_expected(parser._parse_example, input_text, expected_output_text)
 
 
 class TestConjugationExtraction:

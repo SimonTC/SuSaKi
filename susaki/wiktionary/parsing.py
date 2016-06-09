@@ -14,7 +14,7 @@ from susaki.wiktionary.connectors import APIConnector
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -72,17 +72,22 @@ class HTMLParser():
         return clean
 
     def _parse_example(self, example_soup):
+        logging.debug('Start example parsing on following soup:\n{}\n'.format(example_soup))
         example_part_root = etree.Element('Examples')
         example_elements = example_soup.find_all(
             re.compile('dd|li'), recursive=False)
+        logger.debug('Found {} example elements'.format(len(example_elements)))
         for example in example_elements:
+            logger.debug('Parsing the following example element:\n{}'.format(example))
             example_root = etree.Element('Example')
             example_part_root.append(example_root)
             example_translation = example.find('dl')
+            logger.debug('Example translation:\n{}\n'.format(example_translation))
             try:
                 example_translation_text = example_translation.text
             except AttributeError:
                 # Example is placed as a quotation insted of a standard example
+                logger.debug('Quotation example:\n{}'.format(example))
                 example_text = example.text
             else:
                 example_translation_text_clean = self._clean_text(

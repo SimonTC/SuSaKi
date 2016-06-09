@@ -1,0 +1,3 @@
+Dealing with translation examples is not perfect.
+  When examples are given as quotations, the output is rendered wrong.
+  Example: ilma
