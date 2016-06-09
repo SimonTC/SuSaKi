@@ -51,6 +51,15 @@ class HTMLParser():
         new_soup = BeautifulSoup(soup_text, self.PARSER)
         return new_soup
 
+    def _extract_inflection_table(self, pos_soup):
+        logger.debug('Starting extraction of inflection table')
+        inflection_table_soup = pos_soup.find(
+            'table',
+            attrs={'class': 'inflection-table vsSwitcher vsToggleCategory-inflection'})
+        if not inflection_table_soup:
+            raise ValueError('No inflection table present')
+        return inflection_table_soup
+
     def _extract_translations(self, pos_soup):
         """Extracts all translations from the given part-of-speech soup"""
         logger.debug('Starting extraction of translations')

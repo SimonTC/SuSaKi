@@ -81,6 +81,11 @@ def translation_extraction_output(datadir):
 
 
 @pytest.fixture(scope='module')
+def inflection_extraction_data(datadir):
+    return load_html_pages(datadir, 'inflection_extraction_data', to_soup=False)
+
+
+@pytest.fixture(scope='module')
 def translation_parsing_data(datadir):
     html_dict = load_text_files(datadir, 'translation_parsing_data', extension='html')
     xml_dict = load_text_files(datadir, 'translation_parsing_data', extension='xml', remove_whitespace=True)
@@ -346,22 +351,24 @@ class TestExampleParsing(HTML_To_XML_Parsing):
         assert self.output_is_as_expected(parser._parse_example, input_text, expected_output_text)
 
 
-class TestConjugationExtraction:
+class TestInflectionTableExtraction:
 
-    @pytest.mark.xfail
-    def test_raise_error_if_no_conjugation_table():
-        assert False
+    def test_raise_error_if_no_inflection_table(self, parser, inflection_extraction_data):
+        input_html = inflection_extraction_data['input_no_table']
+        input_soup = BeautifulSoup(input_html, 'html.parser')
+        with pytest.raises(ValueError) as error:
+            parser._extract_inflection_table(input_soup)
+        assert str(error.value) == 'No inflection table present'
 
-    @pytest.mark.xfail
-    def test_extract_verb_conjugation_table_correctly():
-        assert False
+    @pytest.mark.parametrize('html_title', ['input_verb_table', 'input_noun_table'])
+    def test_extraction_function_returns_only_table_element(self, parser, inflection_extraction_data, html_title):
+        input_html = inflection_extraction_data['input_verb_table']
+        input_soup = BeautifulSoup(input_html, 'html.parser')
+        observed_output = parser._extract_inflection_table(input_soup)
+        assert observed_output.name == 'table'
 
-    @pytest.mark.xfail
-    def test_extract_noun_conjugation_table_correctly():
-        assert False
 
-
-class TestConjugationParsing:
+class TestConjugationParsing(HTML_To_XML_Parsing):
 
     @pytest.mark.xfail
     def test_parse_verb_conjugation_table_correctly():
