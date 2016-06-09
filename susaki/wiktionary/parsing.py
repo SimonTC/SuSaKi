@@ -24,7 +24,7 @@ class HTMLParser():
 
     possible_word_classes = ('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|'
                              'Suffix|Conjunction|Determiner|Exclamation|'
-                             'Preposition|Postposition|Prefix')
+                             'Preposition|Postposition|Prefix|Abbreviation')
 
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """

@@ -69,7 +69,7 @@ class HTMLConnector(Connector):
                 '[class~=searchresults]')[0]
             if search_results.select('[class~=mw-search-nonefound]'):
                 raise KeyError(
-                    'The word {} does not exist on Wiktionary'.format(word))
+                    'The word "{}" does not exist on Wiktionary'.format(word))
             else:
                 suggestions = search_results.find(
                     'ul', attrs={'class': 'mw-search-results'})
