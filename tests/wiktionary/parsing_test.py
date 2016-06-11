@@ -101,6 +101,14 @@ def example_parsing_data(datadir):
     return combined_dicts
 
 
+@pytest.fixture(scope='module')
+def inflection_parsing_data(datadir):
+    html_dict = load_text_files(datadir, 'inflection_parsing_data', extension='html')
+    xml_dict = load_text_files(datadir, 'inflection_parsing_data', extension='xml', remove_whitespace=True)
+    combined_dicts = {**html_dict, **xml_dict}
+    return combined_dicts
+
+
 @pytest.fixture
 def parser():
     return HTMLParser()
@@ -370,13 +378,14 @@ class TestInflectionTableExtraction:
 
 class TestConjugationParsing(HTML_To_XML_Parsing):
 
-    @pytest.mark.xfail
-    def test_parse_verb_conjugation_table_correctly():
-        assert False
-
-    @pytest.mark.xfail
-    def test_parse_noun_conjugation_table_correctly():
-        assert False
+    @pytest.mark.parametrize('table_type', [
+        'verb_table',
+        'noun_table_with_gradation',
+        'noun_table_without_gradation'])
+    def test_parse_inflection_table_correctly(self, parser, inflection_parsing_data, table_type):
+        input_text = inflection_parsing_data['input_{}'.format(table_type)]
+        expected_output_text = inflection_parsing_data['output_{}'.format(table_type)]
+        assert self.output_is_as_expected(parser._parse_inflection_table, input_text, expected_output_text)
 
 
 class TestHTMLParser:
