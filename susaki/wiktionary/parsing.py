@@ -14,7 +14,7 @@ from susaki.wiktionary.connectors import APIConnector
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -64,7 +64,8 @@ class HTMLParser():
         logger.debug('Extracting table meta info')
         headline_element = headline_row.th
         headline_text = headline_element.text
-        meta_info = re.match(r'Inflection of (\w+) \(Kotus type (\d\d)/(\w+), (.*) gradation\)', headline_text)
+        logger.debug('Headline text: {}'.format(headline_text))
+        meta_info = re.match(r' *Inflection of (\w+) \(Kotus type (\d\d)/(\w+), (.*) gradation\)', headline_text)
         word = meta_info.group(1)
         kotus_type = meta_info.group(2)
         kotus_word = meta_info.group(3)
@@ -85,8 +86,120 @@ class HTMLParser():
         word_element.text = word
         return meta_element
 
-    def _parse_inflection_table(self, table_soup):
-        logger.debug('Extraction inflection information')
+    def _parse_inflection_table(self, table_soup, is_verb=False):
+        is_verb = True
+        if is_verb:
+            return self._parse_inflection_verb_table(table_soup)
+        else:
+            return self._parse_inflection_noun_table(table_soup)
+
+    def _clean_table_titles(self, text):
+        clean_text = self._clean_text(text)
+        if 'tense' in clean_text:
+            clean_text = clean_text.split()[0]
+        else:
+            clean_text = '_'.join(clean_text.split())  # For some reason a simple str.replace didn't work
+        return clean_text
+
+    def _parse_inflection_verb_table(self, table_soup):
+        person_dict = {
+            '1st_sing.': ('first', 'singular'),
+            '2nd_sing.': ('second', 'singular'),
+            '3rd_sing.': ('third', 'singular'),
+            '1st_plur.': ('first', 'plural'),
+            '2nd_plur.': ('second', 'plural'),
+            '3rd_plur.': ('third', 'plural'),
+            'passive': ('passive', 'passive')
+        }
+        logger.debug('Extraction noun inflection information')
+        inflection_root = etree.Element('Inflection_Table')
+        # logger.debug('\n{}'.format(table_soup.prettify()))
+        table_rows = table_soup.table.find_all('tr', recursive=False)
+        logger.debug('Number of table rows: {}'.format(len(table_rows)))
+        headline = table_rows[0]
+        meta_element = self._parse_headline_information(headline)
+        inflection_root.append(meta_element)
+        table_root = etree.SubElement(inflection_root, 'table')
+        tense_titles = []
+        element_dict = {}
+        for row in table_rows[1:]:
+            # Figure out which kind of line we have
+            table_headers = row.find_all('th', recursive=False)
+            table_cells = row.find_all('td', recursive=False)
+            num_table_headers = len(table_headers)
+            num_table_cells = len(table_cells)
+            logger.debug('Number of headers: {}'.format(num_table_headers))
+            logger.debug('Number of table cells: {}'.format(num_table_cells))
+            if num_table_cells > 0:
+                logger.debug('table cells: {}'.format(row.text))
+                person_title = row.find('th').text
+                logger.debug('Dirty title: {}'.format(person_title))
+                person_title = self._clean_table_titles(person_title)
+                logger.debug('Clean title: {}'.format(person_title))
+                person, number = person_dict[person_title]
+                logger.debug('title, person, number: {}, {}, {}'.format(person_title, person, number))
+                is_passive = person == 'passive'
+
+                key = (tense_titles[0], 'positive', number)
+                if is_passive:
+                    new_element = element_dict[key]
+                else:
+                    new_element = etree.SubElement(element_dict[key], person)
+                new_element.text = table_cells[0].text.strip()
+
+                key = (tense_titles[0], 'negative', number)
+                if is_passive:
+                    new_element = element_dict[key]
+                else:
+                    new_element = etree.SubElement(element_dict[key], person)
+                new_element.text = table_cells[1].text.strip()
+
+                key = (tense_titles[1], 'positive', number)
+                if is_passive:
+                    new_element = element_dict[key]
+                else:
+                    new_element = etree.SubElement(element_dict[key], person)
+                new_element.text = table_cells[2].text.strip()
+
+                key = (tense_titles[1], 'negative', number)
+                if is_passive:
+                    new_element = element_dict[key]
+                else:
+                    new_element = etree.SubElement(element_dict[key], person)
+                new_element.text = table_cells[3].text.strip()
+
+            elif num_table_headers == 1:
+                mood = self._clean_table_titles(row.text)
+                if mood == 'Nominal_forms':
+                    logger.debug('Got to the nominal forms. Breaking')
+                    break
+                mood_element = etree.SubElement(table_root, mood)
+                logger.debug('Parsing new mood: {}'.format(mood))
+
+            elif num_table_headers == 2:
+                tense_titles = [
+                    self._clean_table_titles(table_headers[0].text),
+                    self._clean_table_titles(table_headers[1].text)
+                ]
+                logger.debug('Starting on new tense pair: {}'.format(str(tense_titles)))
+                tense_elements = [etree.SubElement(mood_element, x) for x in tense_titles]
+                element_dict = {}
+                for tense in tense_elements:
+                    for feeling in ['positive', 'negative']:
+                        feel_element = etree.SubElement(tense, feeling)
+                        for person in ['singular', 'plural', 'passive']:
+                            element_dict[(tense.tag, feeling, person)] = etree.SubElement(feel_element, person)
+
+                logger.debug('Element dict: {}'.format(str(element_dict)))
+
+            elif num_table_headers == 6:
+                logger.debug('Header row')
+                pass
+            # print(etree.tostring(table_root, pretty_print=True, encoding='unicode'))
+        return inflection_root
+
+    def _parse_inflection_noun_table(self, table_soup):
+        logger.debug('Extraction noun inflection information')
         inflection_root = etree.Element('Inflection_Table')
         # logger.debug('\n{}'.format(table_soup.prettify()))
         table_rows = table_soup.table.find_all('tr', recursive=False)
