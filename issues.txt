@@ -1,3 +1,8 @@
 Dealing with translation examples is not perfect.
   When examples are given as quotations, the output is rendered wrong.
   Example: ilma
+
+Table formatting of html returned by api call is not the same as the formatting used on
+wiktionary.org.
+Use html returned by API as reference when figuring out how to extract
+inflection information

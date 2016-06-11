@@ -376,12 +376,13 @@ class TestInflectionTableExtraction:
         assert observed_output.name == 'table'
 
 
-class TestConjugationParsing(HTML_To_XML_Parsing):
+class TestInflectionParsing(HTML_To_XML_Parsing):
 
-    @pytest.mark.parametrize('table_type', [
-        'verb_table',
-        'noun_table_with_gradation',
-        'noun_table_without_gradation'])
+    # @pytest.mark.parametrize('table_type', [
+    #     'verb_table',
+    #     'noun_table_with_gradation',
+    #     'noun_table_without_gradation'])
+    @pytest.mark.parametrize('table_type', ['noun_table_with_gradation'])
     def test_parse_inflection_table_correctly(self, parser, inflection_parsing_data, table_type):
         input_text = inflection_parsing_data['input_{}'.format(table_type)]
         expected_output_text = inflection_parsing_data['output_{}'.format(table_type)]

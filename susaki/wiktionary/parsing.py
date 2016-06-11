@@ -60,6 +60,85 @@ class HTMLParser():
             raise ValueError('No inflection table present')
         return inflection_table_soup
 
+    def _parse_headline_information(self, headline_row):
+        logger.debug('Extracting table meta info')
+        headline_element = headline_row.th
+        headline_text = headline_element.text
+        meta_info = re.match(r'Inflection of (\w+) \(Kotus type (\d\d)/(\w+), (.*) gradation\)', headline_text)
+        word = meta_info.group(1)
+        kotus_type = meta_info.group(2)
+        kotus_word = meta_info.group(3)
+        gradation = meta_info.group(4)
+        logger.debug('Word: {}'.format(word))
+        logger.debug('Kotus type: {}'.format(kotus_type))
+        logger.debug('Kotus word: {}'.format(kotus_word))
+        logger.debug('Gradation {}'.format(gradation))
+        meta_element = etree.Element('meta')
+        kotus_element = etree.SubElement(meta_element, 'kotus')
+        kotus_type_element = etree.SubElement(kotus_element, 'type')
+        kotus_type_element.text = kotus_type
+        kotus_word_element = etree.SubElement(kotus_element, 'word')
+        kotus_word_element.text = kotus_word
+        gradation_element = etree.SubElement(meta_element, 'gradation')
+        gradation_element.text = gradation
+        word_element = etree.SubElement(meta_element, 'word')
+        word_element.text = word
+        return meta_element
+
+    def _parse_inflection_table(self, table_soup):
+        logger.debug('Extraction inflection information')
+        inflection_root = etree.Element('Inflection_Table')
+        # logger.debug('\n{}'.format(table_soup.prettify()))
+        table_rows = table_soup.table.find_all('tr', recursive=False)
+        headline = table_rows[0]
+        meta_element = self._parse_headline_information(headline)
+        inflection_root.append(meta_element)
+        table_root = etree.SubElement(inflection_root, 'table')
+        in_accusative = False
+        case_element = None
+        has_seen_table_headers = False
+        for row in table_rows[1:]:
+            logger.debug('parsing new row')
+            case = row.th.text
+            if in_accusative:
+                logger.debug('Entering second accusative line')
+                case_element = case_element.getparent()
+                case_element = etree.SubElement(case_element, 'genitive')
+                case_element.text = row.find('td').text
+                in_accusative = False
+            else:
+                try:
+                    case_element = etree.Element(case)
+                    # case_element = etree.SubElement(table_root, case)
+                except ValueError:
+                    # We hit the table headers
+                    logger.debug('Found the table headers\n')
+                    has_seen_table_headers = True
+                    pass
+                else:
+                    if has_seen_table_headers:
+                        table_root.append(case_element)
+                        if case == 'accusative':
+                            logger.debug('Found the accusative case')
+                            in_accusative = True
+                            case_element = etree.SubElement(case_element, 'nominative')
+                        row_elements = row.find_all('td')
+                        singular = row_elements[0].text
+                        if case == 'genitive':
+                            logger.debug('Entering genitive case')
+                            plural = row_elements[1].find('span').text
+                        else:
+                            plural = row_elements[1].text
+                        singular_element = etree.SubElement(case_element, 'singular')
+                        singular_element.text = singular
+                        plural_element = etree.SubElement(case_element, 'plural')
+                        plural_element.text = plural
+            logger.debug('\n{}'.format(etree.tostring(table_root, encoding='unicode', pretty_print=True)))
+        logger.debug('Finished parsing inflection table')
+        return inflection_root
+
+
+
     def _extract_translations(self, pos_soup):
         """Extracts all translations from the given part-of-speech soup"""
         logger.debug('Starting extraction of translations')
