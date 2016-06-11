@@ -25,98 +25,100 @@
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en pääse</first>
+            <second>et pääse</second>
+            <third>ei pääse</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme pääse</first>
+            <second>ette pääse</second>
+            <third>eivät pääse</third>
           </plural>
-          <passive></passive>
+          <passive>ei päästä</passive>
         </negative>
       </present>
       <perfect>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olen päässyt</first>
+            <second>olet päässyt</second>
+            <third>on päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olemme päässeet</first>
+            <second>olette päässeet</second>
+            <third>ovat päässeet</third>
           </plural>
+          <passive>on päästy</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en ole päässyt</first>
+            <second>et ole päässyt</second>
+            <third>ei ole päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme ole päässeet</first>
+            <second>ette ole päässeet</second>
+            <third>eivät ole päässeet</third>
           </plural>
+          <passive>ei ole päästy</passive>
         </negative>
       </perfect>
       <past>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>pääsin</first>
+            <second>pääsit</second>
+            <third>pääsi</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>pääsimme</first>
+            <second>pääsitte</second>
+            <third>pääsivät</third>
           </plural>
-          <passive></passive>
+          <passive>päästiin</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en päässyt</first>
+            <second>et päässyt</second>
+            <third>ei päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme päässeet</first>
+            <second>ette päässeet</second>
+            <third>eivät päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>ei päästy</passive>
         </negative>
       </past>
       <pluperfect>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olin päässyt</first>
+            <second>olit päässyt</second>
+            <third>oli päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olimme päässeet</first>
+            <second>olitte päässeet</second>
+            <third>olivat päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>oli päästy</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en ollut päässyt</first>
+            <second>et ollut päässyt</second>
+            <third>ei ollut päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme olleet päässeet</first>
+            <second>ette olleet päässeet</second>
+            <third>eivät olleet päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>ei ollu päästy</passive>
         </negative>
       </pluperfect>
     </indicative_mood>
@@ -124,57 +126,57 @@
       <present>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>pääsisin</first>
+            <second>pääsisit</second>
+            <third>pääsisi</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>pääsisimme</first>
+            <second>pääsisitte</second>
+            <third>pääsisivät</third>
           </plural>
-          <passive></passive>
+          <passive>päästäisiin</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en pääsisi</first>
+            <second>et pääsisi</second>
+            <third>ei pääsisi</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme pääsisi</first>
+            <second>ette pääsisi</second>
+            <third>eivät pääsisi</third>
           </plural>
-          <passive></passive>
+          <passive>ei päästäisi</passive>
         </negative>
       </present>
       <perfect>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olisin päässyt</first>
+            <second>olisit päässyt</second>
+            <third>olisi päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olisimme päässeet</first>
+            <second>olisitte päässeet</second>
+            <third>olisivat päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>päästy</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en olisi päässyt</first>
+            <second>et olisi päässyt</second>
+            <third>ei olisi päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme olisi päästeet</first>
+            <second>ette päästeet</second>
+            <third>eivät päästeet</third>
           </plural>
-          <passive></passive>
+          <passive>ei olisi päästy</passive>
         </negative>
       </perfect>
     </conditional_mood>
@@ -182,57 +184,57 @@
       <present>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>—</first>
+            <second>pääse</second>
+            <third>pääsköön</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>pääskäämme</first>
+            <second>pääskää</second>
+            <third>pääskööt</third>
           </plural>
-          <passive></passive>
+          <passive>päästäköön</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>—</first>
+            <second>älä pääse</second>
+            <third>älköön pääskö</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>älkäämme pääskö</first>
+            <second>älkää pääskö</second>
+            <third>älköö pääskö</third>
           </plural>
-          <passive></passive>
+          <passive>älköön päästäkö</passive>
         </negative>
       </present>
       <perfect>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>—</first>
+            <second>ole pääsyt</second>
+            <third>olkoon pääsyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>olkaamme päässeet</first>
+            <second>olkaa päässeet</second>
+            <third>olkoot päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>olkoon päästy</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>—</first>
+            <second>älä ole päässyt</second>
+            <third>älköön olko päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>älkäämme olko päässeet</first>
+            <second>älkää olko päässeet</second>
+            <third>älkööt olko päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>älköön olko päästy</passive>
         </negative>
       </perfect>
     </imperative_mood>
@@ -240,57 +242,57 @@
       <present>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>päässen</first>
+            <second>päässet</second>
+            <third>päässee</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>päässemme</first>
+            <second>pääsette</second>
+            <third>päässevät</third>
           </plural>
-          <passive></passive>
+          <passive>päästäneen</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en päässe</first>
+            <second>et päässe</second>
+            <third>ei päässe</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme päässe</first>
+            <second>ette päässe</second>
+            <third>eivät päässe</third>
           </plural>
-          <passive></passive>
+          <passive>ei päästäne</passive>
         </negative>
       </present>
       <perfect>
         <positive>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>lienen päässyt</first>
+            <second>lienet päässyt</second>
+            <third>lienee päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>lienemme päässeet</first>
+            <second>lienette päässeet</second>
+            <third>lienevät päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>lienee päästy</passive>
         </positive>
         <negative>
           <singular>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>en liene päässyt</first>
+            <second>et liene päässyt</second>
+            <third>ei liene päässyt</third>
           </singular>
           <plural>
-            <first></first>
-            <second></second>
-            <third></third>
+            <first>emme liene päässeet</first>
+            <second>ette liene päässeet</second>
+            <third>eivät liene päässeet</third>
           </plural>
-          <passive></passive>
+          <passive>ei liene päästy</passive>
         </negative>
       </perfect>
     </potential_mood>
