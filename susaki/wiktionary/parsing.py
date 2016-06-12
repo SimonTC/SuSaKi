@@ -53,11 +53,13 @@ class HTMLParser():
 
     def _extract_inflection_table(self, pos_soup):
         logger.debug('Starting extraction of inflection table')
-        inflection_table_soup = pos_soup.find(
+        inflection_table_soup = pos_soup.find_next(
             'table',
             attrs={'class': 'inflection-table vsSwitcher vsToggleCategory-inflection'})
         if not inflection_table_soup:
             raise ValueError('No inflection table present')
+        else:
+            logger.debug('Found inflection table:\n{}'.format(inflection_table_soup))
         return inflection_table_soup
 
     def _parse_headline_information(self, headline_row):
@@ -332,6 +334,18 @@ class HTMLParser():
         for translation_part in translation_parts:
             translation_element = self._parse_translation(translation_part)
             translations_root.append(translation_element)
+        try:
+            inflection_table = self._extract_inflection_table(pos_part)
+        except ValueError as err:
+            logger.debug("Didn't find an inflection table")
+            if str(err) == 'No inflection table present':
+                pass
+            else:
+                raise
+        else:
+            logger.debug('Found an inflection table')
+            table_element = self._parse_inflection_table(inflection_table, 'verb' in pos_type)
+            pos_root.append(table_element)
         return pos_root
 
     def _get_pos_header_level(self, pos_tag_headers):
@@ -457,6 +471,7 @@ def print_translations(article_root):
                         pass
             except TypeError:
                 pass
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(
