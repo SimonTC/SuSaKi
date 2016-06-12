@@ -15,7 +15,7 @@ from susaki.wiktionary.connectors import APIConnector
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('__name__')
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 
@@ -89,7 +89,6 @@ class HTMLParser():
         return meta_element
 
     def _parse_inflection_table(self, table_soup, is_verb=False):
-        print(table_soup)
         if is_verb:
             return self._parse_inflection_verb_table(table_soup)
         else:
@@ -429,6 +428,7 @@ class HTMLParser():
         language: source language of the word.
             This language is used to do the translation into English
         """
+
         article_root = etree.Element('Article')
         word_element = etree.Element('Word')
         word_element.text = word

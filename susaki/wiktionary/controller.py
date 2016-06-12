@@ -9,6 +9,10 @@ from collections import defaultdict
 from susaki.wiktionary.connectors import HTMLConnector, APIConnector
 from susaki.wiktionary.parsing import HTMLParser
 import re
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.WARNING)
 
 
 class Wiktionary:
