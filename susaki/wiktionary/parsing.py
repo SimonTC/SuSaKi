@@ -14,7 +14,7 @@ from susaki.wiktionary.connectors import APIConnector
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -65,7 +65,7 @@ class HTMLParser():
         headline_element = headline_row.th
         headline_text = headline_element.text
         logger.debug('Headline text: {}'.format(headline_text))
-        meta_info = re.match(r' *Inflection of (\w+) \(Kotus type (\d\d)/(\w+), (.*) gradation\)', headline_text)
+        meta_info = re.match(r' *Inflection of (\w+) \(Kotus type (\d\d?)/(\w+), (.*) gradation\)', headline_text)
         word = meta_info.group(1)
         kotus_type = meta_info.group(2)
         kotus_word = meta_info.group(3)
@@ -87,7 +87,6 @@ class HTMLParser():
         return meta_element
 
     def _parse_inflection_table(self, table_soup, is_verb=False):
-        is_verb = True
         if is_verb:
             return self._parse_inflection_verb_table(table_soup)
         else:
@@ -213,14 +212,16 @@ class HTMLParser():
         for row in table_rows[1:]:
             logger.debug('parsing new row')
             case = row.th.text
+            case = self._clean_text(case)
             if in_accusative:
                 logger.debug('Entering second accusative line')
                 case_element = case_element.getparent()
                 case_element = etree.SubElement(case_element, 'genitive')
-                case_element.text = row.find('td').text
+                case_element.text = self._clean_text(row.find('td').text)
                 in_accusative = False
             else:
                 try:
+                    logger.debug('Creating new case element: {}'.format(case))
                     case_element = etree.Element(case)
                     # case_element = etree.SubElement(table_root, case)
                 except ValueError:
@@ -239,13 +240,13 @@ class HTMLParser():
                         singular = row_elements[0].text
                         if case == 'genitive':
                             logger.debug('Entering genitive case')
-                            plural = row_elements[1].find('span').text
+                            plural = self._clean_text(row_elements[1].find('span').text)
                         else:
-                            plural = row_elements[1].text
+                            plural = self._clean_text(row_elements[1].text)
                         singular_element = etree.SubElement(case_element, 'singular')
-                        singular_element.text = singular
+                        singular_element.text = self._clean_text(singular)
                         plural_element = etree.SubElement(case_element, 'plural')
-                        plural_element.text = plural
+                        plural_element.text = self._clean_text(plural)
             logger.debug('\n{}'.format(etree.tostring(table_root, encoding='unicode', pretty_print=True)))
         logger.debug('Finished parsing inflection table')
         return inflection_root

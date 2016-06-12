@@ -376,17 +376,27 @@ class TestInflectionTableExtraction:
         assert observed_output.name == 'table'
 
 
-class TestInflectionParsing(HTML_To_XML_Parsing):
+class TestInflectionParsing():
 
-    # @pytest.mark.parametrize('table_type', [
-    #     'verb_table',
-    #     'noun_table_with_gradation',
-    #     'noun_table_without_gradation'])
-    @pytest.mark.parametrize('table_type', ['verb_table'])
+    def output_is_as_expected(self, parsing_function, input_text, expected_output_text, is_verb):
+        input_soup = BeautifulSoup(input_text, 'html.parser')
+        expected_output = etree.fromstring(expected_output_text)
+        observed_output = parsing_function(input_soup, is_verb)
+        observed_output_string = etree.tostring(observed_output, encoding='unicode', pretty_print=True)
+        expected_output_string = etree.tostring(expected_output, encoding='unicode', pretty_print=True)
+        print('Observed\n{}'.format(observed_output_string))
+        print('Expected\n{}'.format(expected_output_string))
+        return observed_output_string == expected_output_string
+
+    @pytest.mark.parametrize('table_type', [
+        'verb_table',
+        'noun_table_with_gradation',
+        'noun_table_without_gradation'])
     def test_parse_inflection_table_correctly(self, parser, inflection_parsing_data, table_type):
+        is_verb = 'verb' in table_type
         input_text = inflection_parsing_data['input_{}'.format(table_type)]
         expected_output_text = inflection_parsing_data['output_{}'.format(table_type)]
-        assert self.output_is_as_expected(parser._parse_inflection_table, input_text, expected_output_text)
+        assert self.output_is_as_expected(parser._parse_inflection_table, input_text, expected_output_text, is_verb)
 
 
 class TestHTMLParser:
