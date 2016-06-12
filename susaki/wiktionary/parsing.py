@@ -53,7 +53,8 @@ class HTMLParser():
 
     def _extract_inflection_table(self, pos_soup):
         logger.debug('Starting extraction of inflection table')
-        inflection_table_soup = pos_soup.find_next(
+        print(pos_soup)
+        inflection_table_soup = pos_soup.find(
             'table',
             attrs={'class': 'inflection-table vsSwitcher vsToggleCategory-inflection'})
         if not inflection_table_soup:
@@ -253,8 +254,6 @@ class HTMLParser():
         logger.debug('Finished parsing inflection table')
         return inflection_root
 
-
-
     def _extract_translations(self, pos_soup):
         """Extracts all translations from the given part-of-speech soup"""
         logger.debug('Starting extraction of translations')
@@ -337,13 +336,13 @@ class HTMLParser():
         try:
             inflection_table = self._extract_inflection_table(pos_part)
         except ValueError as err:
-            logger.debug("Didn't find an inflection table")
+            logger.info("Didn't find an inflection table")
             if str(err) == 'No inflection table present':
                 pass
             else:
                 raise
         else:
-            logger.debug('Found an inflection table')
+            logger.info('Found an inflection table')
             table_element = self._parse_inflection_table(inflection_table, 'verb' in pos_type)
             pos_root.append(table_element)
         return pos_root
@@ -486,3 +485,5 @@ if __name__ == '__main__':
     # s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
     # print(s)
     print_translations(article_root)
+    s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
+    print(s)

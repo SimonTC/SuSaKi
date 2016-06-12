@@ -375,6 +375,10 @@ class TestInflectionTableExtraction:
         observed_output = parser._extract_inflection_table(input_soup)
         assert observed_output.name == 'table'
 
+    @pytest.mark.xfail
+    def test_only_extracts_tables_from_current_pos_part():
+        assert False
+
 
 class TestInflectionParsing():
 
