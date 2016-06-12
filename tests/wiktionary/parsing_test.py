@@ -383,7 +383,7 @@ class TestInflectionTableExtraction:
 class TestInflectionParsing():
 
     def output_is_as_expected(self, parsing_function, input_text, expected_output_text, is_verb):
-        input_soup = BeautifulSoup(input_text, 'html.parser')
+        input_soup = BeautifulSoup(input_text, 'html.parser').table
         expected_output = etree.fromstring(expected_output_text)
         observed_output = parsing_function(input_soup, is_verb)
         observed_output_string = etree.tostring(observed_output, encoding='unicode', pretty_print=True)

@@ -53,7 +53,6 @@ class HTMLParser():
 
     def _extract_inflection_table(self, pos_soup):
         logger.debug('Starting extraction of inflection table')
-        print(pos_soup)
         inflection_table_soup = pos_soup.find(
             'table',
             attrs={'class': 'inflection-table vsSwitcher vsToggleCategory-inflection'})
@@ -90,6 +89,7 @@ class HTMLParser():
         return meta_element
 
     def _parse_inflection_table(self, table_soup, is_verb=False):
+        print(table_soup)
         if is_verb:
             return self._parse_inflection_verb_table(table_soup)
         else:
@@ -113,10 +113,10 @@ class HTMLParser():
             '3rd_plur.': ('third', 'plural'),
             'passive': ('passive', 'passive')
         }
-        logger.debug('Extraction noun inflection information')
+        logger.debug('Extraction verb inflection information')
         inflection_root = etree.Element('Inflection_Table')
         # logger.debug('\n{}'.format(table_soup.prettify()))
-        table_rows = table_soup.table.find_all('tr', recursive=False)
+        table_rows = table_soup.find_all('tr', recursive=False)
         logger.debug('Number of table rows: {}'.format(len(table_rows)))
         headline = table_rows[0]
         meta_element = self._parse_headline_information(headline)
@@ -204,7 +204,7 @@ class HTMLParser():
         logger.debug('Extraction noun inflection information')
         inflection_root = etree.Element('Inflection_Table')
         # logger.debug('\n{}'.format(table_soup.prettify()))
-        table_rows = table_soup.table.find_all('tr', recursive=False)
+        table_rows = table_soup.find_all('tr', recursive=False)
         headline = table_rows[0]
         meta_element = self._parse_headline_information(headline)
         inflection_root.append(meta_element)
@@ -342,8 +342,10 @@ class HTMLParser():
             else:
                 raise
         else:
-            logger.info('Found an inflection table')
-            table_element = self._parse_inflection_table(inflection_table, 'verb' in pos_type)
+            logger.info('Found a {} inflection table'.format(pos_type))
+            is_verb = 'Verb' in pos_type
+            logger.debug('Table is a verb table: {}'.format(is_verb))
+            table_element = self._parse_inflection_table(inflection_table, is_verb)
             pos_root.append(table_element)
         return pos_root
 
