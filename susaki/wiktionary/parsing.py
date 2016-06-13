@@ -122,6 +122,30 @@ class HTMLParser():
             clean_text = '_'.join(clean_text.split())  # For some reason a simple str.replace didn't work
         return clean_text
 
+    def _create_mood_element(self, row):
+        mood = self._clean_table_titles(row.text)
+        if mood == 'Nominal_forms':
+            raise ValueError('Nominal form')
+        mood_element = etree.Element(mood)
+        return mood_element
+
+    def _create_tense_elements(self, mood_element, table_headers):
+        tense_titles = [
+            self._clean_table_titles(table_headers[0].text),
+            self._clean_table_titles(table_headers[1].text)
+        ]
+        logger.debug('Starting on new tense pair: {}'.format(str(tense_titles)))
+        tense_elements = [etree.SubElement(mood_element, x) for x in tense_titles]
+        element_dict = {}
+        for tense in tense_elements:
+            for feeling in ['positive', 'negative']:
+                feel_element = etree.SubElement(tense, feeling)
+                for person in ['singular', 'plural', 'passive']:
+                    element_dict[(tense.tag, feeling, person)] = etree.SubElement(feel_element, person)
+
+        logger.debug('Element dict: {}'.format(str(element_dict)))
+        return element_dict, tense_titles
+
     def _parse_inflection_verb_table(self, table_rows):
         person_dict = {
             '1st_sing.': ('first', 'singular'),
@@ -183,28 +207,23 @@ class HTMLParser():
                 new_element.text = table_cells[3].text.strip()
 
             elif num_table_headers == 1:
-                mood = self._clean_table_titles(row.text)
-                if mood == 'Nominal_forms':
-                    logger.debug('Got to the nominal forms. Breaking')
-                    break
-                mood_element = etree.SubElement(table_root, mood)
-                logger.debug('Parsing new mood: {}'.format(mood))
+                # New mood
+                try:
+                    mood_element = self._create_mood_element(row)
+                except ValueError as err:
+                    if str(err) == 'Nominal form':
+                        logger.debug('Got to the nominal forms. Breaking')
+                        break
+                    else:
+                        raise
+                else:
+                    # New mood
+                    table_root.append(mood_element)
+                    logger.debug('Parsing new mood: {}'.format(mood_element.text))
 
             elif num_table_headers == 2:
-                tense_titles = [
-                    self._clean_table_titles(table_headers[0].text),
-                    self._clean_table_titles(table_headers[1].text)
-                ]
-                logger.debug('Starting on new tense pair: {}'.format(str(tense_titles)))
-                tense_elements = [etree.SubElement(mood_element, x) for x in tense_titles]
-                element_dict = {}
-                for tense in tense_elements:
-                    for feeling in ['positive', 'negative']:
-                        feel_element = etree.SubElement(tense, feeling)
-                        for person in ['singular', 'plural', 'passive']:
-                            element_dict[(tense.tag, feeling, person)] = etree.SubElement(feel_element, person)
-
-                logger.debug('Element dict: {}'.format(str(element_dict)))
+                # New tenses
+                element_dict, tense_titles = self._create_tense_elements(mood_element, table_headers)
 
             elif num_table_headers == 6:
                 logger.debug('Header row')
