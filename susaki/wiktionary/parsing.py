@@ -209,8 +209,26 @@ class HTMLParser():
             elif num_table_headers == 6:
                 logger.debug('Header row')
                 pass
-            # print(etree.tostring(table_root, pretty_print=True, encoding='unicode'))
         return table_root
+
+    def _parse_second_accusative_row(self, noun_case_element, row):
+        noun_case_element = noun_case_element.getparent()
+        noun_case_element = etree.SubElement(noun_case_element, 'genitive')
+        noun_case_element.text = self._clean_text(row.find('td').text)
+
+    def _parse_noun_table_row(self, row, noun_case_element, noun_case_name):
+        """Extracts the singular and plural form from the table row"""
+        row_elements = row.find_all('td')
+        singular = row_elements[0].text
+        if noun_case_name == 'genitive':
+            logger.debug('Entering genitive case')
+            plural = self._clean_text(row_elements[1].find('span').text)
+        else:
+            plural = self._clean_text(row_elements[1].text)
+        singular_element = etree.SubElement(noun_case_element, 'singular')
+        singular_element.text = self._clean_text(singular)
+        plural_element = etree.SubElement(noun_case_element, 'plural')
+        plural_element.text = self._clean_text(plural)
 
     def _parse_inflection_noun_table(self, table_rows):
         logger.debug('Inflection table type: noun')
@@ -220,41 +238,29 @@ class HTMLParser():
         has_seen_table_headers = False
         for row in table_rows[1:]:
             logger.debug('parsing new row')
-            noun_case = row.th.text
-            noun_case = self._clean_text(noun_case)
+            noun_case_name = row.th.text
+            noun_case_name = self._clean_text(noun_case_name)
             if in_accusative:
                 logger.debug('Entering second accusative line')
-                noun_case_element = noun_case_element.getparent()
-                noun_case_element = etree.SubElement(noun_case_element, 'genitive')
-                noun_case_element.text = self._clean_text(row.find('td').text)
+                self._parse_second_accusative_row(noun_case_element, row)
                 in_accusative = False
             else:
                 try:
-                    logger.debug('Creating new case element: {}'.format(noun_case))
-                    noun_case_element = etree.Element(noun_case)
-                except ValueError:
-                    # We hit the table headers
-                    logger.debug('Found the table headers\n')
-                    has_seen_table_headers = True
-                    pass
+                    logger.debug('Creating new noun case element: {}'.format(noun_case_name))
+                    noun_case_element = etree.Element(noun_case_name)
+                except ValueError as err:
+                    if str(err) == 'Empty tag name':
+                        # We hit the table headers
+                        logger.debug('Found the table headers\n')
+                        has_seen_table_headers = True
                 else:
                     if has_seen_table_headers:
                         table_root.append(noun_case_element)
-                        if noun_case == 'accusative':
+                        if noun_case_name == 'accusative':
                             logger.debug('Found the accusative case')
                             in_accusative = True
                             noun_case_element = etree.SubElement(noun_case_element, 'nominative')
-                        row_elements = row.find_all('td')
-                        singular = row_elements[0].text
-                        if noun_case == 'genitive':
-                            logger.debug('Entering genitive case')
-                            plural = self._clean_text(row_elements[1].find('span').text)
-                        else:
-                            plural = self._clean_text(row_elements[1].text)
-                        singular_element = etree.SubElement(noun_case_element, 'singular')
-                        singular_element.text = self._clean_text(singular)
-                        plural_element = etree.SubElement(noun_case_element, 'plural')
-                        plural_element.text = self._clean_text(plural)
+                        self._parse_noun_table_row(row, noun_case_element, noun_case_name)
             logger.debug('\n{}'.format(etree.tostring(table_root, encoding='unicode', pretty_print=True)))
         logger.debug('Finished parsing inflection table')
         return table_root
@@ -347,7 +353,7 @@ class HTMLParser():
             else:
                 raise
         else:
-            logger.info('Found a {} inflection table'.format(pos_type))
+            logger.debug('Found a {} inflection table'.format(pos_type))
             is_verb = 'Verb' in pos_type
             logger.debug('Table is a verb table: {}'.format(is_verb))
             table_element = self._parse_inflection_table(inflection_table, is_verb)
@@ -494,4 +500,4 @@ if __name__ == '__main__':
     # print(s)
     print_translations(article_root)
     s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
-    print(s)
+    # print(s)
