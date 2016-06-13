@@ -1,0 +1,370 @@
+<Article>
+  <Word>päästä</Word>
+  <Languages>
+    <Finnish>
+      <POS-parts>
+        <Verb>
+          <Translations>
+            <Translation>
+              <Examples>
+                <Example>
+                  <Translation>How do I get to the airport?</Translation>
+                  <Text>Kuinka pääsen lentokentälle?</Text>
+                </Example>
+                <Example>
+                  <Translation>I didn't quite reach the summit, because a snowstorm broke out.</Translation>
+                  <Text>En päässyt aivan huipulle, koska puhkesi lumimyrsky.</Text>
+                </Example>
+              </Examples>
+              <Text>(intransitive) To get to, reach, arrive at/in (a place).</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) To get to go, be allowed/permitted to go.</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) To get in, be admitted to.</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) (+ illative) To make it to, get to (a place/level), reach, attain, achieve.</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) (+ act. 3rd inf. in illat.) To manage (to do; to happen by accident).</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) (+ elative) To get rid of (a person); to get over (a feeling).</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) To avoid, escape, get out of, not have/need, be spared the necessity of (doing/to do = act. 3rd inf. in elat.).</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) (+ elative) To evade, elude, escape, get off/by.</Text>
+            </Translation>
+            <Translation>
+              <Text>(intransitive) To be released/discharged (from a hospital; from prison).</Text>
+            </Translation>
+          </Translations>
+          <Inflection_Table>
+            <meta>
+              <kotus>
+                <type>66</type>
+                <word>rohkaista</word>
+              </kotus>
+              <gradation>no</gradation>
+              <word>päästä</word>
+            </meta>
+            <table>
+              <indicative_mood>
+                <present>
+                  <positive>
+                    <singular>
+                      <first>pääsen</first>
+                      <second>pääset</second>
+                      <third>pääsee</third>
+                    </singular>
+                    <plural>
+                      <first>pääsemme</first>
+                      <second>pääsette</second>
+                      <third>pääsevät</third>
+                    </plural>
+                    <passive>päästään</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en pääse</first>
+                      <second>et pääse</second>
+                      <third>ei pääse</third>
+                    </singular>
+                    <plural>
+                      <first>emme pääse</first>
+                      <second>ette pääse</second>
+                      <third>eivät pääse</third>
+                    </plural>
+                    <passive>ei päästä</passive>
+                  </negative>
+                </present>
+                <perfect>
+                  <positive>
+                    <singular>
+                      <first>olen päässyt</first>
+                      <second>olet päässyt</second>
+                      <third>on päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>olemme päässeet</first>
+                      <second>olette päässeet</second>
+                      <third>ovat päässeet</third>
+                    </plural>
+                    <passive>on päästy</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en ole päässyt</first>
+                      <second>et ole päässyt</second>
+                      <third>ei ole päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>emme ole päässeet</first>
+                      <second>ette ole päässeet</second>
+                      <third>eivät ole päässeet</third>
+                    </plural>
+                    <passive>ei ole päästy</passive>
+                  </negative>
+                </perfect>
+                <past>
+                  <positive>
+                    <singular>
+                      <first>pääsin</first>
+                      <second>pääsit</second>
+                      <third>pääsi</third>
+                    </singular>
+                    <plural>
+                      <first>pääsimme</first>
+                      <second>pääsitte</second>
+                      <third>pääsivät</third>
+                    </plural>
+                    <passive>päästiin</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en päässyt</first>
+                      <second>et päässyt</second>
+                      <third>ei päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>emme päässeet</first>
+                      <second>ette päässeet</second>
+                      <third>eivät päässeet</third>
+                    </plural>
+                    <passive>ei päästy</passive>
+                  </negative>
+                </past>
+                <pluperfect>
+                  <positive>
+                    <singular>
+                      <first>olin päässyt</first>
+                      <second>olit päässyt</second>
+                      <third>oli päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>olimme päässeet</first>
+                      <second>olitte päässeet</second>
+                      <third>olivat päässeet</third>
+                    </plural>
+                    <passive>oli päästy</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en ollut päässyt</first>
+                      <second>et ollut päässyt</second>
+                      <third>ei ollut päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>emme olleet päässeet</first>
+                      <second>ette olleet päässeet</second>
+                      <third>eivät olleet päässeet</third>
+                    </plural>
+                    <passive>ei ollut päästy</passive>
+                  </negative>
+                </pluperfect>
+              </indicative_mood>
+              <conditional_mood>
+                <present>
+                  <positive>
+                    <singular>
+                      <first>pääsisin</first>
+                      <second>pääsisit</second>
+                      <third>pääsisi</third>
+                    </singular>
+                    <plural>
+                      <first>pääsisimme</first>
+                      <second>pääsisitte</second>
+                      <third>pääsisivät</third>
+                    </plural>
+                    <passive>päästäisiin</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en pääsisi</first>
+                      <second>et pääsisi</second>
+                      <third>ei pääsisi</third>
+                    </singular>
+                    <plural>
+                      <first>emme pääsisi</first>
+                      <second>ette pääsisi</second>
+                      <third>eivät pääsisi</third>
+                    </plural>
+                    <passive>ei päästäisi</passive>
+                  </negative>
+                </present>
+                <perfect>
+                  <positive>
+                    <singular>
+                      <first>olisin päässyt</first>
+                      <second>olisit päässyt</second>
+                      <third>olisi päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>olisimme päässeet</first>
+                      <second>olisitte päässeet</second>
+                      <third>olisivat päässeet</third>
+                    </plural>
+                    <passive>olisi päästy</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en olisi päässyt</first>
+                      <second>et olisi päässyt</second>
+                      <third>ei olisi päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>emme olisi päässeet</first>
+                      <second>ette olisi päässeet</second>
+                      <third>eivät olisi päässeet</third>
+                    </plural>
+                    <passive>ei olisi päästy</passive>
+                  </negative>
+                </perfect>
+              </conditional_mood>
+              <imperative_mood>
+                <present>
+                  <positive>
+                    <singular>
+                      <first>—</first>
+                      <second>pääse</second>
+                      <third>pääsköön</third>
+                    </singular>
+                    <plural>
+                      <first>pääskäämme</first>
+                      <second>pääskää</second>
+                      <third>pääskööt</third>
+                    </plural>
+                    <passive>päästäköön</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>—</first>
+                      <second>älä pääse</second>
+                      <third>älköön pääskö</third>
+                    </singular>
+                    <plural>
+                      <first>älkäämme pääskö</first>
+                      <second>älkää pääskö</second>
+                      <third>älkööt pääskö</third>
+                    </plural>
+                    <passive>älköön päästäkö</passive>
+                  </negative>
+                </present>
+                <perfect>
+                  <positive>
+                    <singular>
+                      <first>—</first>
+                      <second>ole päässyt</second>
+                      <third>olkoon päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>olkaamme päässeet</first>
+                      <second>olkaa päässeet</second>
+                      <third>olkoot päässeet</third>
+                    </plural>
+                    <passive>olkoon päästy</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>—</first>
+                      <second>älä ole päässyt</second>
+                      <third>älköön olko päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>älkäämme olko päässeet</first>
+                      <second>älkää olko päässeet</second>
+                      <third>älkööt olko päässeet</third>
+                    </plural>
+                    <passive>älköön olko päästy</passive>
+                  </negative>
+                </perfect>
+              </imperative_mood>
+              <potential_mood>
+                <present>
+                  <positive>
+                    <singular>
+                      <first>päässen</first>
+                      <second>päässet</second>
+                      <third>päässee</third>
+                    </singular>
+                    <plural>
+                      <first>päässemme</first>
+                      <second>päässette</second>
+                      <third>päässevät</third>
+                    </plural>
+                    <passive>päästäneen</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en päässe</first>
+                      <second>et päässe</second>
+                      <third>ei päässe</third>
+                    </singular>
+                    <plural>
+                      <first>emme päässe</first>
+                      <second>ette päässe</second>
+                      <third>eivät päässe</third>
+                    </plural>
+                    <passive>ei päästäne</passive>
+                  </negative>
+                </present>
+                <perfect>
+                  <positive>
+                    <singular>
+                      <first>lienen päässyt</first>
+                      <second>lienet päässyt</second>
+                      <third>lienee päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>lienemme päässeet</first>
+                      <second>lienette päässeet</second>
+                      <third>lienevät päässeet</third>
+                    </plural>
+                    <passive>lienee päästy</passive>
+                  </positive>
+                  <negative>
+                    <singular>
+                      <first>en liene päässyt</first>
+                      <second>et liene päässyt</second>
+                      <third>ei liene päässyt</third>
+                    </singular>
+                    <plural>
+                      <first>emme liene päässeet</first>
+                      <second>ette liene päässeet</second>
+                      <third>eivät liene päässeet</third>
+                    </plural>
+                    <passive>ei liene päästy</passive>
+                  </negative>
+                </perfect>
+              </potential_mood>
+            </table>
+          </Inflection_Table>
+        </Verb>
+        <Postposition>
+          <Translations>
+            <Translation>
+              <Examples>
+                <Example>
+                  <Translation>In under six hours I should go to the employment agency, and yet I'm sitting nevertheless here.</Translation>
+                  <Text>Alle kuuden tunnin päästä pitäisi työkkäriin mennä, silti istun täällä.</Text>
+                </Example>
+              </Examples>
+              <Text>in, after, a [period] from (after a period of time).</Text>
+            </Translation>
+          </Translations>
+        </Postposition>
+        <Noun>
+          <Translations>
+            <Translation>
+              <Text>Elative singular form of pää.</Text>
+            </Translation>
+          </Translations>
+        </Noun>
+      </POS-parts>
+    </Finnish>
+  </Languages>
+</Article>

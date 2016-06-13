@@ -1,0 +1,28 @@
+<Article>
+  <Word>ilman</Word>
+  <Languages>
+    <Finnish>
+      <POS-parts>
+        <Preposition>
+          <Translations>
+            <Translation>
+              <Examples>
+                <Example>
+                  <Text>ilman rahaa = without money</Text>
+                </Example>
+              </Examples>
+              <Text>without:</Text>
+            </Translation>
+          </Translations>
+        </Preposition>
+        <Noun>
+          <Translations>
+            <Translation>
+              <Text>Genitive singular form of ilma.</Text>
+            </Translation>
+          </Translations>
+        </Noun>
+      </POS-parts>
+    </Finnish>
+  </Languages>
+</Article>

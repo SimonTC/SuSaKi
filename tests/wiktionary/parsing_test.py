@@ -109,6 +109,14 @@ def inflection_parsing_data(datadir):
     return combined_dicts
 
 
+@pytest.fixture(scope='module')
+def article_parsing_data(datadir):
+    html_dict = load_text_files(datadir, 'article_parsing_data', extension='html')
+    xml_dict = load_text_files(datadir, 'article_parsing_data', extension='xml', remove_whitespace=True)
+    combined_dicts = {**html_dict, **xml_dict}
+    return combined_dicts
+
+
 @pytest.fixture
 def parser():
     return HTMLParser()
@@ -399,76 +407,20 @@ class TestInflectionParsing():
         assert self.output_is_as_expected(parser._parse_inflection_table, input_text, expected_output_text, is_verb)
 
 
-class TestHTMLParser:
-
-    def load_html_pages(self, datadir, sub_folder):
-        article_dict = {}
-        article_dir = '{}/{}'.format(str(datadir), sub_folder)
-        for article in os.listdir(article_dir):
-            if article.endswith('.html'):
-                article_name = os.path.splitext(article)[0]
-                article_path = '/'.join([str(article_dir), article])
-                with open(article_path, 'r') as f:
-                    lines = f.readlines()
-                    content = ''.join(lines)
-                    article_dict[article_name] = content
-        return article_dict
-
-    @pytest.fixture(scope='module')
-    def raw_articles(self, datadir):
-        return self.load_html_pages(datadir, 'raw_pages')
-
-    @pytest.fixture
-    def expected_language_parts(self, datadir):
-        return self.load_html_pages(datadir, 'expected_language_parts')
-
-    @pytest.fixture
-    def parser(self):
-        return HTMLParser()
-
-    def extract_language_part(self, article, parser):
-        soup = BeautifulSoup(article, 'lxml')
-        language_part = parser._extract_language_part(soup, 'Finnish')
-        return language_part
-
-    @pytest.mark.xfail
-    def test_output_dict_formatted_correctly(self):
-        assert False
-
-
-#     def test_extracts_correct_pos_names(self):
-#         assert False
-#     def test_returns_synonyms_if_they_exists(self):
-#         assert False
-#
-#     def test_returns_derived_terms_if_they_exists(self):
-#         assert False
-#
-#     def test_returns_none_as_synonym_when_no_synonyms_exists(self):
-#         assert False
-#
-#     def test_returns_none_as_derived_term_when_no_derived_terms_exist(self):
-#         assert False
-#
-#     def test_returns_correct_definitions_of_a_given_word(self):
-#         assert False
-#
-#     def test_returns_the_correct_translations_of_the_definitions(self):
-#         assert False
-#
-#     def test_returns_correct_examples_for_each_translation(self):
-#         assert False
-#
-#     def test_returns_compound_words_if_they_exists(self):
-#         assert False
-#
-#     def test_returns_none_as_compund_words_if_none_exists(self):
-#         assert False
-#
-#     def test_returns_declensions_table_if_it_exists(self):
-#         assert False
-#
-# #
-# #     #Should be moved to another class
-# #     def test_can_translate_from_english_to_target_language(self):
-# #         assert False
+@pytest.mark.parametrize('article_name', [
+    'päästä',
+    'kuu',
+    'koira',
+    'kuussa',
+    'ilma',
+    'ilman'])
+def test_output_correct_xml(parser, article_parsing_data, article_name):
+    input_text = article_parsing_data['input_{}'.format(article_name)]
+    expected_output_text = article_parsing_data['output_{}'.format(article_name)]
+    expected_output = etree.fromstring(expected_output_text)
+    observed_output = parser.parse_article(input_text, article_name, language='Finnish')
+    observed_output_string = etree.tostring(observed_output, encoding='unicode', pretty_print=True)
+    expected_output_string = etree.tostring(expected_output, encoding='unicode', pretty_print=True)
+    print('Observed\n{}'.format(observed_output_string))
+    print('Expected\n{}'.format(expected_output_string))
+    assert observed_output_string == expected_output_string
