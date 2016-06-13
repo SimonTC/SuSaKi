@@ -160,7 +160,7 @@ class TestLanguageExtraction:
         assert self.output_is_as_expected(word, parser, expected_language_parts, raw_articles)
 
     def test_throw_exception_when_language_not_present_in_article(self, parser, raw_articles):
-        with pytest.raises(KeyError) as exinfo:
+        with pytest.raises(LookupError) as exinfo:
             self.extract_language_part(
                 raw_articles['hello'], parser)
         assert 'No explanations exists for the language:' in str(exinfo)
@@ -177,7 +177,7 @@ class TestPOSExtraction:
                 pos_part = '{}_{}'.format(word, counter)
                 print('Testing pos part {}'.format(pos_part))
                 expected_output = expected_pos_parts[pos_part]
-            except KeyError:
+            except LookupError:
                 # Don't need to test if extractor has extracted more than expected
                 # since this is already tested in other test.
                 return True
@@ -237,7 +237,7 @@ class TestPOSExtraction:
             '<h4><span class="mw-headline" id="Bob">Bob</span><\h4>',
             '<h4><span class="mw-headline" id="Kimmie">Kimmie</span><\h4>']
         bad_html = '\n'.join(bad_html_lines)
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(LookupError) as error:
             bad_soup = BeautifulSoup(bad_html, 'lxml')
             parser._extract_pos_parts(bad_soup)
         assert str(error.value) == 'No POS-parts present'
@@ -281,7 +281,7 @@ class TestTranslationExtraction:
         no_translation_list_items = translation_extraction_output['no_translation_list_items']
         no_translation_list_items_soup = BeautifulSoup(no_translation_list_items, 'html.parser')
         expected_err_message = 'No translations present'
-        expected_err_type = ValueError
+        expected_err_type = LookupError
         assert self.throws_error(parser, no_translation_list_soup, expected_err_type, expected_err_message)
         assert self.throws_error(parser, no_translation_list_items_soup, expected_err_type, expected_err_message)
 
@@ -372,7 +372,7 @@ class TestInflectionTableExtraction:
     def test_raise_error_if_no_inflection_table(self, parser, inflection_extraction_data):
         input_html = inflection_extraction_data['input_no_table']
         input_soup = BeautifulSoup(input_html, 'html.parser')
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(LookupError) as error:
             parser._extract_inflection_table(input_soup)
         assert str(error.value) == 'No inflection table present'
 

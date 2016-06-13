@@ -57,7 +57,7 @@ class HTMLParser():
             'table',
             attrs={'class': 'inflection-table vsSwitcher vsToggleCategory-inflection'})
         if not inflection_table_soup:
-            raise ValueError('No inflection table present')
+            raise LookupError('No inflection table present')
         else:
             logger.debug('Found inflection table:\n{}'.format(inflection_table_soup))
         return inflection_table_soup
@@ -125,7 +125,7 @@ class HTMLParser():
     def _create_mood_element(self, row):
         mood = self._clean_table_titles(row.text)
         if mood == 'Nominal_forms':
-            raise ValueError('Nominal form')
+            raise LookupError('Nominal form')
         mood_element = etree.Element(mood)
         return mood_element
 
@@ -206,7 +206,7 @@ class HTMLParser():
                 # New mood
                 try:
                     mood_element = self._create_mood_element(row)
-                except ValueError as err:
+                except LookupError as err:
                     if str(err) == 'Nominal form':
                         logger.debug('Got to the nominal forms. Breaking')
                         break
@@ -293,10 +293,10 @@ class HTMLParser():
         try:
             translations = translation_list.find_all('li', recursive=False)
         except AttributeError:
-            raise ValueError('No translations present')
+            raise LookupError('No translations present')
         num_translations = len(translations)
         if num_translations == 0:
-            raise ValueError('No translations present')
+            raise LookupError('No translations present')
         logger.debug('Translations found: {}'.format(num_translations))
         return translations
 
@@ -367,7 +367,7 @@ class HTMLParser():
             translations_root.append(translation_element)
         try:
             inflection_table = self._extract_inflection_table(pos_part)
-        except ValueError as err:
+        except LookupError as err:
             logger.info("Didn't find an inflection table")
             if str(err) == 'No inflection table present':
                 pass
@@ -402,7 +402,7 @@ class HTMLParser():
             attrs={'class': 'mw-headline'})
         num_pos_tags = len(pos_tags)
         if num_pos_tags == 0:
-            raise ValueError('No POS-parts present')
+            raise LookupError('No POS-parts present')
         logger.debug('Number of POS-tags in language part: {}'.format(num_pos_tags))
         pos_tag_headers = [tag.parent for tag in pos_tags]
         pos_tag_header_level = self._get_pos_header_level(pos_tag_headers)
@@ -448,7 +448,7 @@ class HTMLParser():
                 finally:
                     break
         if not start_tag:
-            raise KeyError(
+            raise LookupError(
                 'No explanations exists for the language: {}'.format(language))
         language_part = self._extract_soup_between(start_tag, end_tag, raw_article)
         return language_part

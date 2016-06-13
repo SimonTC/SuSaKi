@@ -33,7 +33,7 @@ class APIConnector:
         try:
             content_text = content.text
         except AttributeError:
-            raise KeyError("Article can't be accessed by API")
+            raise LookupError("Article can't be accessed by API")
         return content_text
 
 

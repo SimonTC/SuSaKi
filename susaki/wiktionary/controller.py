@@ -71,7 +71,7 @@ class Wiktionary:
         word = word.strip()
         try:
             raw_article = self.api_connector.collect_raw_article(word)
-        except KeyError:
+        except LookupError:
             try:
                 req = self.html_connector.collect_raw_article(word)
                 if type(req) is list:
@@ -93,7 +93,7 @@ class Wiktionary:
         try:
             article = self.parser.parse_article(
                 raw_article, word, self.language)
-        except KeyError as err:
+        except LookupError as err:
             if 'No explanations exists for the language:' in str(err):
                 print(
                     '"{}" does not seem to exists as a word in the {} - English dictionary'.format(word, self.language))
