@@ -34,16 +34,18 @@ class Wiktionary:
         return False
 
     def change_language(self, command):
-        print('Language change is currently not implemented')
-#         new_language = input('Which language would you like to use?: >>')
-#         old_language = self.language
-#         self.connector = RestfulConnector(new_language)
-#         print('The language was changed from {} to {}'.format(
-#             old_language, self.connector.language))
+        # print('Language change is currently not implemented')
+        print('WARNING: This tool has not been tested with other source languages '
+              'thank Finnish. It should work, but you might get weird results.')
+        new_language = input('Which source language would you like to use?: >> ')
+        old_language = self.language
+        self.language = new_language
+        print('The source language was changed from {} to {}'.format(
+            old_language, self.language))
         return True
 
     def print_information(self, article_root):
-        language_part = article_root.find('Languages').find('Finnish')
+        language_part = article_root.find('Languages').find(self.language)
         pos_parts = language_part.find('POS-parts')
         for pos in pos_parts:
             print('\n   {}'.format(pos.tag))
