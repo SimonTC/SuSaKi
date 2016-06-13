@@ -14,7 +14,7 @@ from susaki.wiktionary.connectors import APIConnector
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger('__name__')
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -98,10 +98,21 @@ class HTMLParser():
         return meta_element
 
     def _parse_inflection_table(self, table_soup, is_verb=False):
+        logger.debug('Parsing inflection table')
+        inflection_root = etree.Element('Inflection_Table')
+        table_rows = table_soup.find_all('tr', recursive=False)
+        logger.debug('Number of table rows: {}'.format(len(table_rows)))
+        headline = table_rows[0]
+        meta_element = self._parse_headline_information(headline)
+        inflection_root.append(meta_element)
+
         if is_verb:
-            return self._parse_inflection_verb_table(table_soup)
+            table_root = self._parse_inflection_verb_table(table_rows)
         else:
-            return self._parse_inflection_noun_table(table_soup)
+            table_root = self._parse_inflection_noun_table(table_rows)
+
+        inflection_root.append(table_root)
+        return inflection_root
 
     def _clean_table_titles(self, text):
         clean_text = self._clean_text(text)
@@ -111,7 +122,7 @@ class HTMLParser():
             clean_text = '_'.join(clean_text.split())  # For some reason a simple str.replace didn't work
         return clean_text
 
-    def _parse_inflection_verb_table(self, table_soup):
+    def _parse_inflection_verb_table(self, table_rows):
         person_dict = {
             '1st_sing.': ('first', 'singular'),
             '2nd_sing.': ('second', 'singular'),
@@ -121,14 +132,8 @@ class HTMLParser():
             '3rd_plur.': ('third', 'plural'),
             'passive': ('passive', 'passive')
         }
-        logger.debug('Extraction verb inflection information')
-        inflection_root = etree.Element('Inflection_Table')
-        table_rows = table_soup.find_all('tr', recursive=False)
-        logger.debug('Number of table rows: {}'.format(len(table_rows)))
-        headline = table_rows[0]
-        meta_element = self._parse_headline_information(headline)
-        inflection_root.append(meta_element)
-        table_root = etree.SubElement(inflection_root, 'table')
+        logger.debug('Inflection table type: verb')
+        table_root = etree.Element('table')
         tense_titles = []
         element_dict = {}
         for row in table_rows[1:]:
@@ -205,17 +210,11 @@ class HTMLParser():
                 logger.debug('Header row')
                 pass
             # print(etree.tostring(table_root, pretty_print=True, encoding='unicode'))
-        return inflection_root
+        return table_root
 
-    def _parse_inflection_noun_table(self, table_soup):
-        logger.debug('Extraction noun inflection information')
-        inflection_root = etree.Element('Inflection_Table')
-        # logger.debug('\n{}'.format(table_soup.prettify()))
-        table_rows = table_soup.find_all('tr', recursive=False)
-        headline = table_rows[0]
-        meta_element = self._parse_headline_information(headline)
-        inflection_root.append(meta_element)
-        table_root = etree.SubElement(inflection_root, 'table')
+    def _parse_inflection_noun_table(self, table_rows):
+        logger.debug('Inflection table type: noun')
+        table_root = etree.Element('table')
         in_accusative = False
         case_element = None
         has_seen_table_headers = False
@@ -259,7 +258,7 @@ class HTMLParser():
                         plural_element.text = self._clean_text(plural)
             logger.debug('\n{}'.format(etree.tostring(table_root, encoding='unicode', pretty_print=True)))
         logger.debug('Finished parsing inflection table')
-        return inflection_root
+        return table_root
 
     def _extract_translations(self, pos_soup):
         """Extracts all translations from the given part-of-speech soup"""
