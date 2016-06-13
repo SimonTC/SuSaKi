@@ -216,23 +216,22 @@ class HTMLParser():
         logger.debug('Inflection table type: noun')
         table_root = etree.Element('table')
         in_accusative = False
-        case_element = None
+        noun_case_element = None
         has_seen_table_headers = False
         for row in table_rows[1:]:
             logger.debug('parsing new row')
-            case = row.th.text
-            case = self._clean_text(case)
+            noun_case = row.th.text
+            noun_case = self._clean_text(noun_case)
             if in_accusative:
                 logger.debug('Entering second accusative line')
-                case_element = case_element.getparent()
-                case_element = etree.SubElement(case_element, 'genitive')
-                case_element.text = self._clean_text(row.find('td').text)
+                noun_case_element = noun_case_element.getparent()
+                noun_case_element = etree.SubElement(noun_case_element, 'genitive')
+                noun_case_element.text = self._clean_text(row.find('td').text)
                 in_accusative = False
             else:
                 try:
-                    logger.debug('Creating new case element: {}'.format(case))
-                    case_element = etree.Element(case)
-                    # case_element = etree.SubElement(table_root, case)
+                    logger.debug('Creating new case element: {}'.format(noun_case))
+                    noun_case_element = etree.Element(noun_case)
                 except ValueError:
                     # We hit the table headers
                     logger.debug('Found the table headers\n')
@@ -240,21 +239,21 @@ class HTMLParser():
                     pass
                 else:
                     if has_seen_table_headers:
-                        table_root.append(case_element)
-                        if case == 'accusative':
+                        table_root.append(noun_case_element)
+                        if noun_case == 'accusative':
                             logger.debug('Found the accusative case')
                             in_accusative = True
-                            case_element = etree.SubElement(case_element, 'nominative')
+                            noun_case_element = etree.SubElement(noun_case_element, 'nominative')
                         row_elements = row.find_all('td')
                         singular = row_elements[0].text
-                        if case == 'genitive':
+                        if noun_case == 'genitive':
                             logger.debug('Entering genitive case')
                             plural = self._clean_text(row_elements[1].find('span').text)
                         else:
                             plural = self._clean_text(row_elements[1].text)
-                        singular_element = etree.SubElement(case_element, 'singular')
+                        singular_element = etree.SubElement(noun_case_element, 'singular')
                         singular_element.text = self._clean_text(singular)
-                        plural_element = etree.SubElement(case_element, 'plural')
+                        plural_element = etree.SubElement(noun_case_element, 'plural')
                         plural_element.text = self._clean_text(plural)
             logger.debug('\n{}'.format(etree.tostring(table_root, encoding='unicode', pretty_print=True)))
         logger.debug('Finished parsing inflection table')
