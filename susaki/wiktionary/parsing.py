@@ -135,16 +135,47 @@ class HTMLParser():
             self._clean_table_titles(table_headers[1].text)
         ]
         logger.debug('Starting on new tense pair: {}'.format(str(tense_titles)))
-        tense_elements = [etree.SubElement(mood_element, x) for x in tense_titles]
+        tense_elements = [etree.SubElement(mood_element, x)
+                          for x in tense_titles]
         element_dict = {}
         for tense in tense_elements:
             for feeling in ['positive', 'negative']:
                 feel_element = etree.SubElement(tense, feeling)
                 for person in ['singular', 'plural', 'passive']:
-                    element_dict[(tense.tag, feeling, person)] = etree.SubElement(feel_element, person)
+                    element_dict[(tense.tag, feeling, person)] = \
+                        etree.SubElement(feel_element, person)
 
         logger.debug('Element dict: {}'.format(str(element_dict)))
         return element_dict, tense_titles
+
+    def _fill_inflection_form_element(self, key, person, is_passive,
+                                      element_dict, text):
+        if is_passive:
+            new_element = element_dict[key]
+        else:
+            new_element = etree.SubElement(element_dict[key], person)
+        new_element.text = text
+
+    def _parse_verb_inflection_row(self, row, person_dict, tense_titles,
+                                   table_cells, element_dict):
+        logger.debug('table cells: {}'.format(row.text))
+        person_title = row.find('th').text
+        logger.debug('Dirty title: {}'.format(person_title))
+        person_title = self._clean_table_titles(person_title)
+        logger.debug('Clean title: {}'.format(person_title))
+        person, number = person_dict[person_title]
+        logger.debug('title, person, number: {}, {}, {}'.format(
+            person_title, person, number))
+        is_passive = person == 'passive'
+
+        table_column = 0
+        for tense in tense_titles:
+            for negation in ['positive', 'negative']:
+                key = (tense, negation, number)
+                text = table_cells[table_column].text.strip()
+                self._fill_inflection_form_element(
+                    key, person, is_passive, element_dict, text)
+                table_column += 1
 
     def _parse_inflection_verb_table(self, table_rows):
         person_dict = {
@@ -169,43 +200,8 @@ class HTMLParser():
             logger.debug('Number of headers: {}'.format(num_table_headers))
             logger.debug('Number of table cells: {}'.format(num_table_cells))
             if num_table_cells > 0:
-                logger.debug('table cells: {}'.format(row.text))
-                person_title = row.find('th').text
-                logger.debug('Dirty title: {}'.format(person_title))
-                person_title = self._clean_table_titles(person_title)
-                logger.debug('Clean title: {}'.format(person_title))
-                person, number = person_dict[person_title]
-                logger.debug('title, person, number: {}, {}, {}'.format(person_title, person, number))
-                is_passive = person == 'passive'
-
-                key = (tense_titles[0], 'positive', number)
-                if is_passive:
-                    new_element = element_dict[key]
-                else:
-                    new_element = etree.SubElement(element_dict[key], person)
-                new_element.text = table_cells[0].text.strip()
-
-                key = (tense_titles[0], 'negative', number)
-                if is_passive:
-                    new_element = element_dict[key]
-                else:
-                    new_element = etree.SubElement(element_dict[key], person)
-                new_element.text = table_cells[1].text.strip()
-
-                key = (tense_titles[1], 'positive', number)
-                if is_passive:
-                    new_element = element_dict[key]
-                else:
-                    new_element = etree.SubElement(element_dict[key], person)
-                new_element.text = table_cells[2].text.strip()
-
-                key = (tense_titles[1], 'negative', number)
-                if is_passive:
-                    new_element = element_dict[key]
-                else:
-                    new_element = etree.SubElement(element_dict[key], person)
-                new_element.text = table_cells[3].text.strip()
-
+                self._parse_verb_inflection_row(
+                    row, person_dict, tense_titles, table_cells, element_dict)
             elif num_table_headers == 1:
                 # New mood
                 try:
@@ -219,11 +215,13 @@ class HTMLParser():
                 else:
                     # New mood
                     table_root.append(mood_element)
-                    logger.debug('Parsing new mood: {}'.format(mood_element.text))
+                    logger.debug('Parsing new mood: {}'.format(
+                        mood_element.text))
 
             elif num_table_headers == 2:
                 # New tenses
-                element_dict, tense_titles = self._create_tense_elements(mood_element, table_headers)
+                element_dict, tense_titles = self._create_tense_elements(
+                    mood_element, table_headers)
 
             elif num_table_headers == 6:
                 logger.debug('Header row')
@@ -265,7 +263,8 @@ class HTMLParser():
                 in_accusative = False
             else:
                 try:
-                    logger.debug('Creating new noun case element: {}'.format(noun_case_name))
+                    logger.debug('Creating new noun case element: {}'.format(
+                        noun_case_name))
                     noun_case_element = etree.Element(noun_case_name)
                 except ValueError as err:
                     if str(err) == 'Empty tag name':
@@ -278,9 +277,12 @@ class HTMLParser():
                         if noun_case_name == 'accusative':
                             logger.debug('Found the accusative case')
                             in_accusative = True
-                            noun_case_element = etree.SubElement(noun_case_element, 'nominative')
-                        self._parse_noun_table_row(row, noun_case_element, noun_case_name)
-            logger.debug('\n{}'.format(etree.tostring(table_root, encoding='unicode', pretty_print=True)))
+                            noun_case_element = etree.SubElement(
+                                noun_case_element, 'nominative')
+                        self._parse_noun_table_row(
+                            row, noun_case_element, noun_case_name)
+            logger.debug('\n{}'.format(etree.tostring(
+                table_root, encoding='unicode', pretty_print=True)))
         logger.debug('Finished parsing inflection table')
         return table_root
 
