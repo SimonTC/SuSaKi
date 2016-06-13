@@ -62,11 +62,8 @@ class HTMLParser():
             logger.debug('Found inflection table:\n{}'.format(inflection_table_soup))
         return inflection_table_soup
 
-    def _parse_headline_information(self, headline_row):
-        logger.debug('Extracting table meta info')
-        headline_element = headline_row.th
-        headline_text = headline_element.text
-        logger.debug('Headline text: {}'.format(headline_text))
+    def _extract_meta_information(self, headline_text):
+        """ Extract meta information from the headline text"""
         meta_info = re.match(r' *Inflection of (\w+) \(Kotus type (\d\d?)/(\w+), (.*) gradation\)', headline_text)
         word = meta_info.group(1)
         kotus_type = meta_info.group(2)
@@ -76,6 +73,9 @@ class HTMLParser():
         logger.debug('Kotus type: {}'.format(kotus_type))
         logger.debug('Kotus word: {}'.format(kotus_word))
         logger.debug('Gradation {}'.format(gradation))
+        return word, kotus_type, kotus_word, gradation
+
+    def _create_meta_tree(self, word, kotus_type, kotus_word, gradation):
         meta_element = etree.Element('meta')
         kotus_element = etree.SubElement(meta_element, 'kotus')
         kotus_type_element = etree.SubElement(kotus_element, 'type')
@@ -86,6 +86,15 @@ class HTMLParser():
         gradation_element.text = gradation
         word_element = etree.SubElement(meta_element, 'word')
         word_element.text = word
+        return meta_element
+
+    def _parse_headline_information(self, headline_row):
+        logger.debug('Extracting meta info from table')
+        headline_element = headline_row.th
+        headline_text = headline_element.text
+        logger.debug('Headline text: {}'.format(headline_text))
+        word, kotus_type, kotus_word, gradation = self._extract_meta_information(headline_text)
+        meta_element = self._create_meta_tree(word, kotus_type, kotus_word, gradation)
         return meta_element
 
     def _parse_inflection_table(self, table_soup, is_verb=False):
@@ -114,7 +123,6 @@ class HTMLParser():
         }
         logger.debug('Extraction verb inflection information')
         inflection_root = etree.Element('Inflection_Table')
-        # logger.debug('\n{}'.format(table_soup.prettify()))
         table_rows = table_soup.find_all('tr', recursive=False)
         logger.debug('Number of table rows: {}'.format(len(table_rows)))
         headline = table_rows[0]
