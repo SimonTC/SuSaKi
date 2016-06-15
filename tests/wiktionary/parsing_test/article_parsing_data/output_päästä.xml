@@ -341,6 +341,65 @@
                   </negative>
                 </perfect>
               </potential_mood>
+              <nominal_forms>
+                <infinitives>
+                  <first>päästä</first>
+                  <long_first>päästäkseen</long_first>
+                  <second>
+                    <inessive>
+                      <active>päästessä</active>
+                      <passive>päästäessä</passive>
+                    </inessive>
+                    <instructive>
+                      <active>päästen</active>
+                      <passive>—</passive>
+                    </instructive>
+                  </second>
+                  <third>
+                    <inessive>
+                      <active>pääsemässä</active>
+                      <passive>—</passive>
+                    </inessive>
+                    <elative>
+                      <active>pääsemästä</active>
+                      <passive>—</passive>
+                    </elative>
+                    <illative>
+                      <active>pääsemään</active>
+                      <passive>—</passive>
+                    </illative>
+                    <adessive>
+                      <active>pääsemällä</active>
+                      <passive>—</passive>
+                    </adessive>
+                    <abessive>
+                      <active>pääsemättä</active>
+                      <passive>—</passive>
+                    </abessive>
+                    <instructive>
+                      <active>pääsemän</active>
+                      <passive>päästämän</passive>
+                    </instructive>
+                  </third>
+                  <fourth>
+                    <nominative>pääseminen</nominative>
+                    <partitive>pääsemistä</partitive>
+                  </fourth>
+                  <fifth>pääsemäisillään</fifth>
+                </infinitives>
+                <participles>
+                  <present>
+                    <active>pääsevä</active>
+                    <passive>päästävä</passive>
+                  </present>
+                  <past>
+                    <active>päässyt</active>
+                    <passive>päästy</passive>
+                  </past>
+                  <agent>pääsemä</agent>
+                  <negative>pääsemätön</negative>
+                </participles>
+              </nominal_forms>
             </table>
           </Inflection_Table>
         </Verb>
