@@ -463,7 +463,7 @@ class HTMLParser():
         try:
             inflection_table = self._extract_inflection_table(pos_part)
         except LookupError as err:
-            logger.info("Didn't find an inflection table")
+            logger.debug("Didn't find an inflection table")
             if str(err) == 'No inflection table present':
                 pass
             else:
