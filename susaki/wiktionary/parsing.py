@@ -177,6 +177,99 @@ class HTMLParser():
                     key, person, is_passive, element_dict, text)
                 table_column += 1
 
+    def _extract_active_and_passive_forms(self, cell_values, root_element, offset=1):
+        times = ['active', 'passive']
+        for i, time in enumerate(times):
+            element = etree.SubElement(root_element, time)
+            element.text = self._clean_text(cell_values[i + offset].text)
+
+    def _extract_first_two_nominal_form_lines(self, table_rows, row_id, infinitives_element, participles_element):
+        names = [
+            ['first', 'present'],
+            ['long_first', 'past']
+        ]
+        for i, row in enumerate(table_rows[row_id: row_id + 2]):
+            cell_values = row.find_all('td')
+
+            infinitive = etree.SubElement(infinitives_element, names[i][0])
+            infinitive.text = self._clean_text(cell_values[0].text)
+
+            participle_element = etree.SubElement(participles_element, names[i][1])
+            self._extract_active_and_passive_forms(cell_values, participle_element)
+
+    def _extract_nominal_form_lines_3_to_4(self, table_rows, row_id, infinitives_element, participles_element):
+        second_infinitive_element = etree.SubElement(infinitives_element, 'second')
+        names = [
+            ['inessive', 'instructive'],
+            ['agent', 'negative']
+        ]
+        for i, row in enumerate(table_rows[row_id: row_id + 2]):
+            cell_values = row.find_all('td')
+
+            infinitive = etree.SubElement(second_infinitive_element, names[0][i])
+            self._extract_active_and_passive_forms(cell_values, infinitive, offset=0)
+
+            participle_element = etree.SubElement(participles_element, names[1][i])
+            participle_element.text = self._clean_text(cell_values[2].text)
+
+    def _extract_third_infinitives(self, table_rows, row_id, infinitives_element):
+        third_infinitive_element = etree.SubElement(infinitives_element, 'third')
+        for i, row in enumerate(table_rows[row_id: row_id + 6]):
+            cell_values = row.find_all('td')
+            headlines = row.find_all('th')
+            if i == 0:
+                # First row is special since it also contains the title row for the infinitive
+                headlines = list(headlines[1:])
+                cell_values = cell_values[:-1]
+            name = self._clean_text(headlines[0].text)
+            infinitive = etree.SubElement(third_infinitive_element, name)
+            self._extract_active_and_passive_forms(cell_values, infinitive, offset=0)
+
+    def _extract_fourth_infinitives(self, table_rows, row_id, infinitives_element):
+        fourth_infinitive_element = etree.SubElement(infinitives_element, 'fourth')
+        for i, row in enumerate(table_rows[row_id: row_id + 2]):
+            cell_values = row.find_all('td')
+            headlines = row.find_all('th')
+            if i == 0:
+                # First row is special since it also contains the title row for the infinitive
+                headlines = list(headlines[1:])
+            name = self._clean_text(headlines[0].text)
+            infinitive = etree.SubElement(fourth_infinitive_element, name)
+            text = cell_values[0].text
+            infinitive.text = self._clean_text(text)
+
+    def _extract_fifth_infinitives(self, table_rows, row_id, infinitives_element):
+        element = etree.SubElement(infinitives_element, 'fifth')
+        row = table_rows[row_id]
+        cell_values = row.find_all('td')
+        text = cell_values[0].text
+        element.text = self._clean_text(text)
+
+    def _parse_nominal_forms(self, table_rows, row_id):
+        mood_element = etree.Element('nominal_forms')
+        infinitives_element = etree.SubElement(mood_element, 'infinitives')
+        participles_element = etree.SubElement(mood_element, 'participles')
+
+        # The first couple of lines needs to be done outside a loop since they
+        # are too different from the rest
+
+        start_id = row_id + 3
+        self._extract_first_two_nominal_form_lines(table_rows, start_id, infinitives_element, participles_element)
+
+        start_id += 2
+        self._extract_nominal_form_lines_3_to_4(table_rows, start_id, infinitives_element, participles_element)
+
+        start_id += 2
+        self._extract_third_infinitives(table_rows, start_id, infinitives_element)
+
+        start_id += 6
+        self._extract_fourth_infinitives(table_rows, start_id, infinitives_element)
+
+        start_id += 2
+        self._extract_fifth_infinitives(table_rows, start_id, infinitives_element)
+
+        return mood_element
+
     def _parse_inflection_verb_table(self, table_rows):
         person_dict = {
             '1st_sing.': ('first', 'singular'),
@@ -191,7 +284,7 @@ class HTMLParser():
         table_root = etree.Element('table')
         tense_titles = []
         element_dict = {}
-        for row in table_rows[1:]:
+        for i, row in enumerate(table_rows[1:]):
             # Figure out which kind of line we have
             table_headers = row.find_all('th', recursive=False)
             table_cells = row.find_all('td', recursive=False)
@@ -208,6 +301,8 @@ class HTMLParser():
                     mood_element = self._create_mood_element(row)
                 except LookupError as err:
                     if str(err) == 'Nominal form':
+                        nominal_forms_element = self._parse_nominal_forms(table_rows, i + 1)
+                        table_root.append(nominal_forms_element)
                         logger.debug('Got to the nominal forms. Breaking')
                         break
                     else:
@@ -521,4 +616,4 @@ if __name__ == '__main__':
     # print(s)
     print_translations(article_root)
     s = etree.tostring(article_root, pretty_print=True, encoding='unicode')
-    # print(s)
+    print(s)
