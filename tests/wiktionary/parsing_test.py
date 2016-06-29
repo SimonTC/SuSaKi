@@ -406,6 +406,9 @@ class TestInflectionParsing():
         expected_output_text = inflection_parsing_data['output_{}'.format(table_type)]
         assert self.output_is_as_expected(parser._parse_inflection_table, input_text, expected_output_text, is_verb)
 
+    def test_pronoun_parsing(self):
+        assert False
+
 
 @pytest.mark.parametrize('article_name', [
     'päästä',
