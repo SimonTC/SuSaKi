@@ -81,10 +81,10 @@ class Wiktionary:
                         print(''.join(['  ', suggestion]))
                     return True
                 else:
-                    raise KeyError(
+                    raise LookupError(
                         'The word "{}" does not exist on Wiktionary'.format(word))
 
-            except KeyError as error:
+            except LookupError as error:
                 if 'does not exist on Wiktionary' in str(error):
                     print(str(error).replace("'", ""))
                     return True

@@ -68,7 +68,7 @@ class HTMLConnector(Connector):
             search_results = article_content.select(
                 '[class~=searchresults]')[0]
             if search_results.select('[class~=mw-search-nonefound]'):
-                raise KeyError(
+                raise LookupError(
                     'The word "{}" does not exist on Wiktionary'.format(word))
             else:
                 suggestions = search_results.find(
