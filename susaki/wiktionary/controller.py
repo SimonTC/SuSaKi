@@ -12,7 +12,7 @@ import re
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 
 class Wiktionary:
@@ -71,7 +71,9 @@ class Wiktionary:
         word = word.strip()
         try:
             raw_article = self.api_connector.collect_raw_article(word)
+            logger.debug('Found raw article')
         except LookupError:
+            logger.debug('Lookup error while getting article from api')
             try:
                 req = self.html_connector.collect_raw_article(word)
                 if type(req) is list:
@@ -93,11 +95,14 @@ class Wiktionary:
         try:
             article = self.parser.parse_article(
                 raw_article, word, self.language)
+            logger.debug('Parsing of article succeeded')
         except LookupError as err:
             if 'No explanations exists for the language:' in str(err):
                 print(
                     '"{}" does not seem to exists as a word in the {} - English dictionary'.format(word, self.language))
                 return True
+            else:
+                raise
         self.print_information(article)
 
         return True

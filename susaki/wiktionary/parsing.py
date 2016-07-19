@@ -24,7 +24,7 @@ class HTMLParser():
 
     possible_word_classes = ('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|'
                              'Suffix|Conjunction|Determiner|Exclamation|'
-                             'Preposition|Postposition|Prefix|Abbreviation')
+                             'Preposition|Postposition|Prefix|Abbreviation|Particle')
 
     def _extract_soup_between(self, from_tag, to_tag, soup):
         """
@@ -492,11 +492,13 @@ class HTMLParser():
             return True
 
     def _extract_pos_parts(self, language_part):
+        logger.debug('Starting extraction of POS-parts')
         pos_tags = language_part.find_all(
             text=re.compile(self.possible_word_classes),
             attrs={'class': 'mw-headline'})
         num_pos_tags = len(pos_tags)
         if num_pos_tags == 0:
+            logger.debug("No POS-parts present")
             raise LookupError('No POS-parts present')
         logger.debug('Number of POS-tags in language part: {}'.format(num_pos_tags))
         pos_tag_headers = [tag.parent for tag in pos_tags]
@@ -519,9 +521,11 @@ class HTMLParser():
             pos_part = self._extract_soup_between(start_tag, None, language_part)
             pos_parts.append(pos_part)
         logger.debug('Found {} POS-tags in language part'.format(len(pos_parts)))
+        logger.debug('Finished extraction of POS-parts')
         return pos_parts
 
     def _extract_language_part(self, raw_article, language):
+        logger.debug('Starting language part extraction')
         language_header_tags = raw_article.find_all('h2')
         start_tag = None
         end_tag = None
@@ -546,6 +550,7 @@ class HTMLParser():
             raise LookupError(
                 'No explanations exists for the language: {}'.format(language))
         language_part = self._extract_soup_between(start_tag, end_tag, raw_article)
+        logger.debug("Finished language part extraction")
         return language_part
 
     def parse_article(self, raw_article, word, language='Finnish'):
@@ -556,7 +561,7 @@ class HTMLParser():
         language: source language of the word.
             This language is used to do the translation into English
         """
-
+        logger.debug('Parsing article')
         article_root = etree.Element('Article')
         word_element = etree.Element('Word')
         word_element.text = word
