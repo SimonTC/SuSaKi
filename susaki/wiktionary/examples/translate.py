@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
-file_path = '/media/simon/Data/Dropbox/Onnenkieli/Vocabularies/14 - Puhelin soi.csv'
+file_path = '/media/simon/Data/Dropbox/Onnenkieli/Vocabularies/2 - Muutopuuhissa.csv'
 connector = APIConnector()
 parser = HTMLParser()
 
