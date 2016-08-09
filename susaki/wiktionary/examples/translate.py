@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
-file_path = '/media/simon/Data/Dropbox/Onnenkieli/Vocabularies/2 - Muutopuuhissa.csv'
+file_path = '/media/simon/Data/Dropbox/Onnenkieli/Vocabularies/Rakennusmateriaalit.txt'
 connector = APIConnector()
 parser = HTMLParser()
 
@@ -46,9 +46,13 @@ with open(file_path) as source_file:
                 raw_article = collect_raw_article(line)
                 if raw_article:
                     logger.debug('Article exists')
-                    xml_root = parser.parse_article(
-                        raw_article, line, 'Finnish')
-                    translations = collect_translations(xml_root)
+                    try:
+                        xml_root = parser.parse_article(
+                            raw_article, line, 'Finnish')
+                        translations = collect_translations(xml_root)
+                    except:
+                        print("Error while parsing article. Ignoring word")
+                        translations = None
                 else:
                     logger.debug('No article exists')
                     translations = None
