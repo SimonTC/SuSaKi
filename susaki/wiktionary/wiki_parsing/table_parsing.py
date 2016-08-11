@@ -207,7 +207,7 @@ def _clean_verb_table_titles(text):
     keys.
     """
     clean_title = clean_text(text)
-    if 'tense' in clean_text:
+    if 'tense' in clean_title:
         clean_title = clean_title.split()[0]
     else:
         clean_title = '_'.join(clean_title.split())  # For some reason a simple str.replace didn't work
