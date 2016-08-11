@@ -202,7 +202,10 @@ def parse_verb_table(table_rows):
     return table_root
 
 
-def _clean_table_titles(text):
+def _clean_verb_table_titles(text):
+    """ Connects all words in the title with underscore so they can be used as
+    keys.
+    """
     clean_title = clean_text(text)
     if 'tense' in clean_text:
         clean_title = clean_title.split()[0]
@@ -212,7 +215,8 @@ def _clean_table_titles(text):
 
 
 def _create_mood_element(row):
-    mood = _clean_table_titles(row.text)
+    """ Create the etree node that contains the mood information"""
+    mood = _clean_verb_table_titles(row.text)
     if mood == 'Nominal_forms':
         raise LookupError('Nominal form')
     mood_element = etree.Element(mood)
@@ -221,8 +225,8 @@ def _create_mood_element(row):
 
 def _create_tense_elements(mood_element, table_headers):
     tense_titles = [
-        _clean_table_titles(table_headers[0].text),
-        _clean_table_titles(table_headers[1].text)
+        _clean_verb_table_titles(table_headers[0].text),
+        _clean_verb_table_titles(table_headers[1].text)
     ]
     logger.debug('Starting on new tense pair: {}'.format(str(tense_titles)))
     tense_elements = [etree.SubElement(mood_element, x)
@@ -253,7 +257,7 @@ def _parse_verb_inflection_row(row, person_dict, tense_titles,
     logger.debug('table cells: {}'.format(row.text))
     person_title = row.find('th').text
     logger.debug('Dirty title: {}'.format(person_title))
-    person_title = _clean_table_titles(person_title)
+    person_title = _clean_verb_table_titles(person_title)
     logger.debug('Clean title: {}'.format(person_title))
     person, number = person_dict[person_title]
     logger.debug('title, person, number: {}, {}, {}'.format(
