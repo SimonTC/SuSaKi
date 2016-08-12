@@ -70,7 +70,7 @@ def parse_meta_information(headline_row):
 
 def extract_meta_information(headline_text):
     """ Extract meta information from the headline text"""
-    meta_info = re.match(r' *Inflection of (\w+) \(Kotus type (\d\d?)/(\w+), (.*) gradation\)', headline_text)
+    meta_info = re.match(r' *Inflection of ([\w ]+) \(Kotus type (\d\d?)/(\w+), (.*) gradation\)', headline_text)
     word = meta_info.group(1)
     kotus_type = meta_info.group(2)
     kotus_word = meta_info.group(3)
