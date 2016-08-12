@@ -5,7 +5,7 @@ import logging
 from lxml import etree
 
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger('__name__')
 
 
@@ -96,16 +96,16 @@ def parse_noun_table(rows):
 
     for i, row in enumerate(rows[start_row:]):
         logger.debug('Parsing row {}'.format(i + start_row))
-        noun_case_name = row.th.text
-        noun_case_name = clean_text(noun_case_name)
-        logger.debug('Creating new noun case element: {}'.format(
-            noun_case_name))
-        noun_case_element = etree.Element(noun_case_name)
         if in_accusative:
             logger.debug('Entering second accusative row (genitive)')
             parse_second_accusative_row(noun_case_element, row)
             in_accusative = False
         else:
+            noun_case_name = row.th.text
+            noun_case_name = clean_text(noun_case_name)
+            logger.debug('Creating new noun case element: {}'.format(
+                noun_case_name))
+            noun_case_element = etree.Element(noun_case_name)
             table_root.append(noun_case_element)
             if noun_case_name == 'accusative':
                 logger.debug('Found the accusative case')
@@ -124,20 +124,21 @@ def find_noun_table_start(rows):
     are repeated there but not in the same other. Because of this we want to
     ignore the first lines and first start parsing on the main table.
     Rows: The rows of the table
-    Returns: the id of the row where the first entry of the main table exists.
+    Returns: the id of tgen.he row where the first entry of the main table exists.
              (After the table headers)
     """
     logger.debug('Starting search for the main table')
     for i, row in enumerate(rows[1:]):
         noun_case_name = row.th.text
         noun_case_name = clean_text(noun_case_name)
+        logger.debug(noun_case_name)
         try:
             etree.Element(noun_case_name)
         except ValueError as err:
             if str(err) == 'Empty tag name':
                 # We found the headers of the real table
-                logger.debug('Found the table headers')
-                return i + 1
+                logger.debug('Found the table headers in row {}'.format(i + 1))
+                return i + 2
             else:
                 raise
     raise ValueError("Couldn't find the start of the main table")
