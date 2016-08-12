@@ -28,11 +28,11 @@ def parse_inflection_table(table_soup, table_type):
         meta_element = parse_meta_information(headline)
         inflection_root.append(meta_element)
 
-    if table_type == 'verb':
+    if table_type in ['verb']:
         table_root = parse_verb_table(table_rows)
-    elif table_type == 'noun':
+    elif table_type in ['noun', 'adjective']:
         table_root = parse_noun_table(table_rows)
-    elif table_type == 'pronoun':
+    elif table_type in ['pronoun', 'numeral']:
         table_root = parse_pronoun_table(table_rows)
     else:
         raise ValueError(

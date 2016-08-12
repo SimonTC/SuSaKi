@@ -6,3 +6,5 @@ Table formatting of html returned by api call is not the same as the formatting 
 wiktionary.org.
 Use html returned by API as reference when figuring out how to extract
 inflection information
+
+Parsing of the numerals does not parse the adverbial forms
