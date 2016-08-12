@@ -12,7 +12,7 @@ logger = logging.getLogger('__name__')
 ########################################
 # Entry function
 ########################################
-def parse_inflection_table(table_soup, is_verb=False):
+def parse_inflection_table(table_soup, table_type):
     logger.debug('Parsing inflection table')
     inflection_root = etree.Element('Inflection_Table')
     table_rows = table_soup.find_all('tr', recursive=False)
@@ -21,10 +21,15 @@ def parse_inflection_table(table_soup, is_verb=False):
     meta_element = parse_meta_information(headline)
     inflection_root.append(meta_element)
 
-    if is_verb:
+    if table_type == 'verb':
         table_root = parse_verb_table(table_rows)
-    else:
+    elif table_type == 'noun':
         table_root = parse_noun_table(table_rows)
+    elif table_type == 'pronoun':
+        table_root = parse_pronoun_table
+    else:
+        raise NotImplemented(
+            'No method implemented for parsing tables of type "{}"'.format(table_type))
 
     inflection_root.append(table_root)
     return inflection_root
@@ -34,7 +39,8 @@ def parse_inflection_table(table_soup, is_verb=False):
 # Utility functions
 ########################################
 def clean_text(text):
-    """ Removes line break characters and unneeded spaces from the text
+    """
+    Removes line break characters and unneeded spaces from the text
     """
     clean = text.replace('\n', '')
     clean = clean.strip()
