@@ -260,6 +260,10 @@ class HTMLParser():
 
         return article_root
 
+    def _parse_inflection_table(self, table_soup, is_verb=False):
+        #TODO: REMOVE this function. Onlly here for compatability with tests
+        return table_parsing.parse_inflection_table(table_soup, is_verb)
+
 
 def print_translations(article_root):
     language_part = article_root.find('Languages').find('Finnish')
