@@ -1,7 +1,4 @@
 <Inflection_Table>
-  <meta>
-    <word>minä</word>
-  </meta>
   <table>
     <nominative>
       <singular>minä</singular>
@@ -52,16 +49,16 @@
       <plural>meiksi</plural>
     </translative>
     <instructive>
-      <singular>—</singular>
-      <plural>—</plural>
+      <singular>–</singular>
+      <plural>–</plural>
     </instructive>
     <abessive>
       <singular>minutta</singular>
       <plural>meittä</plural>
     </abessive>
     <comitative>
-      <singular>—</singular>
-      <plural>—</plural>
+      <singular>–</singular>
+      <plural>–</plural>
     </comitative>
   </table>
 </Inflection_Table>

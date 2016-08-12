@@ -13,22 +13,29 @@ logger = logging.getLogger('__name__')
 # Entry function
 ########################################
 def parse_inflection_table(table_soup, table_type):
+    """
+    Parse the table soup according to the table type given.
+    Return the root of the element tree for the inflection table.
+    """
     logger.debug('Parsing inflection table')
     inflection_root = etree.Element('Inflection_Table')
+    if table_type == 'pronoun':
+        table_soup = table_soup.find('table')
     table_rows = table_soup.find_all('tr', recursive=False)
     logger.debug('Number of table rows: {}'.format(len(table_rows)))
     headline = table_rows[0]
-    meta_element = parse_meta_information(headline)
-    inflection_root.append(meta_element)
+    if table_type != 'pronoun':
+        meta_element = parse_meta_information(headline)
+        inflection_root.append(meta_element)
 
     if table_type == 'verb':
         table_root = parse_verb_table(table_rows)
     elif table_type == 'noun':
         table_root = parse_noun_table(table_rows)
     elif table_type == 'pronoun':
-        table_root = parse_pronoun_table
+        table_root = parse_pronoun_table(table_rows)
     else:
-        raise NotImplemented(
+        raise ValueError(
             'No method implemented for parsing tables of type "{}"'.format(table_type))
 
     inflection_root.append(table_root)
@@ -413,6 +420,7 @@ def parse_pronoun_table(table_rows):
     logger.debug('Inflection table type: Pronoun')
     table_root = etree.Element('table')
     for i, row in enumerate(table_rows[1:]):
+        logger.debug('Parsing row {}'.format(i + 1))
         case_element = parse_pronoun_table_row(row)
         table_root.append(case_element)
     return table_root

@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from lxml import etree
 
 from susaki.wiktionary.connectors import APIConnector
-from susaki.wiktionary.wiki_parsing import table_parsing
+from susaki.wiktionary.wiki_parsing.table_parsing import parse_inflection_table, clean_text
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
@@ -96,7 +96,7 @@ class HTMLParser():
                 logger.debug('Quotation example:\n{}'.format(example))
                 example_text = example.text
             else:
-                example_translation_text_clean = table_parsing.clean_text(
+                example_translation_text_clean = clean_text(
                     example_translation_text)
                 # Remove translation to avoid having it show up in the example text
                 example_translation.clear()
@@ -105,7 +105,7 @@ class HTMLParser():
                 example_translation_element.text = example_translation_text_clean
                 example_root.append(example_translation_element)
 
-            example_text_clean = table_parsing.clean_text(example_text)
+            example_text_clean = clean_text(example_text)
             example_text_element = etree.Element('Text')
             example_text_element.text = example_text_clean
             example_root.append(example_text_element)
@@ -121,7 +121,7 @@ class HTMLParser():
             example_part_root = self._parse_example(example_part)
             root.append(example_part_root)
         text = translation_soup.text
-        text_clean = table_parsing.clean_text(text)
+        text_clean = clean_text(text)
         text_element = etree.Element('Text')
         text_element.text = text_clean
         root.append(text_element)
@@ -146,9 +146,7 @@ class HTMLParser():
                 raise
         else:
             logger.debug('Found a {} inflection table'.format(pos_type))
-            is_verb = 'Verb' in pos_type
-            logger.debug('Table is a verb table: {}'.format(is_verb))
-            table_element = table_parsing.parse_inflection_table(inflection_table, is_verb)
+            table_element = parse_inflection_table(inflection_table, pos_type.lower())
             pos_root.append(table_element)
         return pos_root
 
@@ -259,10 +257,6 @@ class HTMLParser():
             pos_parts_root.append(pos_part_element)
 
         return article_root
-
-    def _parse_inflection_table(self, table_soup, is_verb=False):
-        #TODO: REMOVE this function. Onlly here for compatability with tests
-        return table_parsing.parse_inflection_table(table_soup, is_verb)
 
 
 def print_translations(article_root):
