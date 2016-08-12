@@ -399,7 +399,8 @@ class TestInflectionParsing():
     @pytest.mark.parametrize('table_type', [
         'verb_table',
         'noun_table_with_gradation',
-        'noun_table_without_gradation'])
+        'noun_table_without_gradation',
+        'pronoun_table'])
     def test_parse_inflection_table_correctly(self, parser, inflection_parsing_data, table_type):
         is_verb = 'verb' in table_type
         input_text = inflection_parsing_data['input_{}'.format(table_type)]
