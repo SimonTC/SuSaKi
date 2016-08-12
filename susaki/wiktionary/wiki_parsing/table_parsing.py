@@ -10,7 +10,7 @@ logger = logging.getLogger('__name__')
 
 
 ########################################
-# Entry functions
+# Entry function
 ########################################
 def parse_inflection_table(table_soup, is_verb=False):
     logger.debug('Parsing inflection table')
@@ -180,7 +180,7 @@ person_dict = {
 
 
 def parse_verb_table(table_rows):
-    logger.debug('Inflection table type: verb')
+    logger.debug('Inflection table type: Verb')
     table_root = etree.Element('table')
     tense_titles = []
     element_dict = {}
@@ -201,6 +201,7 @@ def parse_verb_table(table_rows):
                 mood_element = _create_mood_element(row)
             except LookupError as err:
                 if str(err) == 'Nominal form':
+                    # Parse the nominal forms and exit
                     nominal_forms_element = _parse_nominal_forms(table_rows, i + 1)
                     table_root.append(nominal_forms_element)
                     logger.debug('Got to the nominal forms. Breaking')
@@ -215,12 +216,13 @@ def parse_verb_table(table_rows):
 
         elif num_table_headers == 2:
             # New tenses
-            element_dict, tense_titles = _create_tense_elements(
-                mood_element, table_headers)
+            element_dict, tense_titles = \
+                _create_tense_elements(mood_element, table_headers)
 
         elif num_table_headers == 6:
             logger.debug('Header row')
             pass
+
     return table_root
 
 
@@ -303,7 +305,8 @@ def _extract_active_and_passive_forms(cell_values, root_element, offset=1):
         element.text = clean_text(cell_values[i + offset].text)
 
 
-def _extract_first_two_nominal_form_lines(table_rows, row_id, infinitives_element, participles_element):
+def _extract_first_two_nominal_form_lines(
+        table_rows, row_id, infinitives_element, participles_element):
     names = [
         ['first', 'present'],
         ['long_first', 'past']
@@ -318,7 +321,8 @@ def _extract_first_two_nominal_form_lines(table_rows, row_id, infinitives_elemen
         _extract_active_and_passive_forms(cell_values, participle_element)
 
 
-def _extract_nominal_form_lines_3_to_4(table_rows, row_id, infinitives_element, participles_element):
+def _extract_nominal_form_lines_3_to_4(
+        table_rows, row_id, infinitives_element, participles_element):
     second_infinitive_element = etree.SubElement(infinitives_element, 'second')
     names = [
         ['inessive', 'instructive'],
