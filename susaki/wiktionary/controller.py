@@ -168,7 +168,12 @@ if __name__ == '__main__':
         description='Look for translations into English on wiktionary')
     parser.add_argument(
         "-l", "--language", help="The language you want translations from", default="Finnish")
+    parser.add_argument(
+        "-d", "--debug", help="Set to true if you want debug output", default=False
+    )
     args = parser.parse_args()
     language = args.language
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
     wiktionary = Wiktionary(language)
     wiktionary.run()
