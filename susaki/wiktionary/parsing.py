@@ -15,7 +15,7 @@ from susaki.wiktionary.wiki_parsing.table_parsing import parse_inflection_table,
 
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger('__name__')
 logging.getLogger("requests").setLevel(logging.WARNING)
 
@@ -60,7 +60,7 @@ class HTMLParser():
         if not inflection_table_soup:
             raise LookupError('No inflection table present')
         else:
-            logger.debug('Found inflection table:\n{}'.format(inflection_table_soup))
+            logger.debug('Found inflection table')
         return inflection_table_soup
 
     def _extract_translations(self, pos_soup):
@@ -83,17 +83,16 @@ class HTMLParser():
         example_elements = example_soup.find_all(
             re.compile('dd|li'), recursive=False)
         logger.debug('Found {} example elements'.format(len(example_elements)))
-        for example in example_elements:
-            logger.debug('Parsing the following example element:\n{}'.format(example))
+        for i, example in enumerate(example_elements):
+            logger.debug('Parsing example {}'.format(i))
             example_root = etree.Element('Example')
             example_part_root.append(example_root)
             example_translation = example.find('dl')
-            logger.debug('Example translation:\n{}\n'.format(example_translation))
             try:
                 example_translation_text = example_translation.text
             except AttributeError:
                 # Example is placed as a quotation insted of a standard example
-                logger.debug('Quotation example:\n{}'.format(example))
+                logger.debug('Example placed as a quotation')
                 example_text = example.text
             else:
                 example_translation_text_clean = clean_text(

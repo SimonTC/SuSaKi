@@ -62,7 +62,7 @@ def parse_meta_information(headline_row):
     logger.debug('Extracting meta info from table')
     headline_element = headline_row.th
     headline_text = headline_element.text
-    logger.debug('Headline text: {}'.format(headline_text))
+    logger.debug('Headline text: {}'.format(headline_text.replace('\n', '')))
     word, kotus_type, kotus_word, gradation = extract_meta_information(headline_text)
     meta_element = create_meta_tree(word, kotus_type, kotus_word, gradation)
     return meta_element
@@ -275,8 +275,6 @@ def _create_tense_elements(mood_element, table_headers):
             for person in ['singular', 'plural', 'passive']:
                 element_dict[(tense.tag, feeling, person)] = \
                     etree.SubElement(feel_element, person)
-
-    logger.debug('Element dict: {}'.format(str(element_dict)))
     return element_dict, tense_titles
 
 
@@ -291,11 +289,8 @@ def _fill_inflection_form_element(key, person, is_passive,
 
 def _parse_verb_inflection_row(row, person_dict, tense_titles,
                                table_cells, element_dict):
-    logger.debug('table cells: {}'.format(row.text))
     person_title = row.find('th').text
-    logger.debug('Dirty title: {}'.format(person_title))
     person_title = _clean_verb_table_titles(person_title)
-    logger.debug('Clean title: {}'.format(person_title))
     person, number = person_dict[person_title]
     logger.debug('title, person, number: {}, {}, {}'.format(
         person_title, person, number))
