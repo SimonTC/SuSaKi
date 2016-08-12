@@ -401,5 +401,25 @@ def _parse_nominal_forms(table_rows, row_id):
 
 
 ########################################
-# Adjective table parsing
+# Pronoun table parsing
 ########################################
+def parse_pronoun_table(table_rows):
+    logger.debug('Inflection table type: Pronoun')
+    table_root = etree.Element('table')
+    for i, row in enumerate(table_rows[1:]):
+        case_element = parse_pronoun_table_row(row)
+        table_root.append(case_element)
+    return table_root
+
+
+def parse_pronoun_table_row(row):
+    row_elements = row.find_all('td')
+    case_name = clean_text(row_elements[0].text)
+    singular = clean_text(row_elements[1].text)
+    plural = clean_text(row_elements[2].text)
+    case_element = etree.Element(case_name)
+    singular_element = etree.SubElement(case_element, 'singular')
+    singular_element.text = clean_text(singular)
+    plural_element = etree.SubElement(case_element, 'plural')
+    plural_element.text = clean_text(plural)
+    return case_element
