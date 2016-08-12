@@ -63,23 +63,6 @@ class HTMLParser():
             logger.debug('Found inflection table:\n{}'.format(inflection_table_soup))
         return inflection_table_soup
 
-    def _parse_inflection_table(self, table_soup, is_verb=False):
-        logger.debug('Parsing inflection table')
-        inflection_root = etree.Element('Inflection_Table')
-        table_rows = table_soup.find_all('tr', recursive=False)
-        logger.debug('Number of table rows: {}'.format(len(table_rows)))
-        headline = table_rows[0]
-        meta_element = table_parsing.parse_meta_information(headline)
-        inflection_root.append(meta_element)
-
-        if is_verb:
-            table_root = table_parsing.parse_verb_table(table_rows)
-        else:
-            table_root = table_parsing.parse_noun_table(table_rows)
-
-        inflection_root.append(table_root)
-        return inflection_root
-
     def _extract_translations(self, pos_soup):
         """Extracts all translations from the given part-of-speech soup"""
         logger.debug('Starting extraction of translations')
@@ -165,7 +148,7 @@ class HTMLParser():
             logger.debug('Found a {} inflection table'.format(pos_type))
             is_verb = 'Verb' in pos_type
             logger.debug('Table is a verb table: {}'.format(is_verb))
-            table_element = self._parse_inflection_table(inflection_table, is_verb)
+            table_element = table_parsing.parse_inflection_table(inflection_table, is_verb)
             pos_root.append(table_element)
         return pos_root
 

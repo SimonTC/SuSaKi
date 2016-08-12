@@ -10,6 +10,27 @@ logger = logging.getLogger('__name__')
 
 
 ########################################
+# Entry functions
+########################################
+def parse_inflection_table(table_soup, is_verb=False):
+    logger.debug('Parsing inflection table')
+    inflection_root = etree.Element('Inflection_Table')
+    table_rows = table_soup.find_all('tr', recursive=False)
+    logger.debug('Number of table rows: {}'.format(len(table_rows)))
+    headline = table_rows[0]
+    meta_element = parse_meta_information(headline)
+    inflection_root.append(meta_element)
+
+    if is_verb:
+        table_root = parse_verb_table(table_rows)
+    else:
+        table_root = parse_noun_table(table_rows)
+
+    inflection_root.append(table_root)
+    return inflection_root
+
+
+########################################
 # Utility functions
 ########################################
 def clean_text(text):
