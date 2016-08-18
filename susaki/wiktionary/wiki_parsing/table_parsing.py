@@ -4,13 +4,23 @@ import logging
 
 from lxml import etree
 
+from susaki.wiktionary.wiki_parsing import util
+
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
 
+def clean_text(text):
+    """
+    Removes line break characters and unneeded spaces from the text
+    """
+    clean = text.replace('\n', '')
+    clean = clean.strip()
+    clean = re.sub(r'  *', ' ', clean)
+    return clean
 
 ########################################
-# Entry function
+# Entry parsing function
 ########################################
 def parse_inflection_table(table_soup, table_type):
     """
@@ -40,19 +50,6 @@ def parse_inflection_table(table_soup, table_type):
 
     inflection_root.append(table_root)
     return inflection_root
-
-
-########################################
-# Utility functions
-########################################
-def clean_text(text):
-    """
-    Removes line break characters and unneeded spaces from the text
-    """
-    clean = text.replace('\n', '')
-    clean = clean.strip()
-    clean = re.sub(r'  *', ' ', clean)
-    return clean
 
 
 ########################################
@@ -115,7 +112,7 @@ def parse_noun_table(rows):
             in_accusative = False
         else:
             noun_case_name = row.th.text
-            noun_case_name = clean_text(noun_case_name)
+            noun_case_name = util.clean_text(noun_case_name)
             logger.debug('Creating new noun case element: {}'.format(
                 noun_case_name))
             noun_case_element = etree.Element(noun_case_name)
@@ -143,7 +140,7 @@ def find_noun_table_start(rows):
     logger.debug('Starting search for the main table')
     for i, row in enumerate(rows[1:]):
         noun_case_name = row.th.text
-        noun_case_name = clean_text(noun_case_name)
+        noun_case_name = util.clean_text(noun_case_name)
         logger.debug(noun_case_name)
         try:
             etree.Element(noun_case_name)
@@ -160,7 +157,7 @@ def find_noun_table_start(rows):
 def parse_second_accusative_row(noun_case_element, row):
     noun_case_element = noun_case_element.getparent()
     noun_case_element = etree.SubElement(noun_case_element, 'genitive')
-    noun_case_element.text = clean_text(row.find('td').text)
+    noun_case_element.text = util.clean_text(row.find('td').text)
 
 
 def parse_noun_table_row(row, noun_case_element, noun_case_name):
@@ -169,13 +166,13 @@ def parse_noun_table_row(row, noun_case_element, noun_case_name):
     singular = row_elements[0].text
     if noun_case_name == 'genitive':
         logger.debug('Entering genitive case')
-        plural = clean_text(row_elements[1].find('span').text)
+        plural = util.clean_text(row_elements[1].find('span').text)
     else:
-        plural = clean_text(row_elements[1].text)
+        plural = util.clean_text(row_elements[1].text)
     singular_element = etree.SubElement(noun_case_element, 'singular')
-    singular_element.text = clean_text(singular)
+    singular_element.text = util.clean_text(singular)
     plural_element = etree.SubElement(noun_case_element, 'plural')
-    plural_element.text = clean_text(plural)
+    plural_element.text = util.clean_text(plural)
 
 
 ########################################
@@ -243,7 +240,7 @@ def _clean_verb_table_titles(text):
     """ Connects all words in the title with underscore so they can be used as
     keys.
     """
-    clean_title = clean_text(text)
+    clean_title = util.clean_text(text)
     if 'tense' in clean_title:
         clean_title = clean_title.split()[0]
     else:
@@ -310,7 +307,7 @@ def _extract_active_and_passive_forms(cell_values, root_element, offset=1):
     times = ['active', 'passive']
     for i, time in enumerate(times):
         element = etree.SubElement(root_element, time)
-        element.text = clean_text(cell_values[i + offset].text)
+        element.text = util.clean_text(cell_values[i + offset].text)
 
 
 def _extract_first_two_nominal_form_lines(
@@ -323,7 +320,7 @@ def _extract_first_two_nominal_form_lines(
         cell_values = row.find_all('td')
 
         infinitive = etree.SubElement(infinitives_element, names[i][0])
-        infinitive.text = clean_text(cell_values[0].text)
+        infinitive.text = util.clean_text(cell_values[0].text)
 
         participle_element = etree.SubElement(participles_element, names[i][1])
         _extract_active_and_passive_forms(cell_values, participle_element)
@@ -343,7 +340,7 @@ def _extract_nominal_form_lines_3_to_4(
         _extract_active_and_passive_forms(cell_values, infinitive, offset=0)
 
         participle_element = etree.SubElement(participles_element, names[1][i])
-        participle_element.text = clean_text(cell_values[2].text)
+        participle_element.text = util.clean_text(cell_values[2].text)
 
 
 def _extract_third_infinitives(table_rows, row_id, infinitives_element):
@@ -355,7 +352,7 @@ def _extract_third_infinitives(table_rows, row_id, infinitives_element):
             # First row is special since it also contains the title row for the infinitive
             headlines = list(headlines[1:])
             cell_values = cell_values[:-1]
-        name = clean_text(headlines[0].text)
+        name = util.clean_text(headlines[0].text)
         infinitive = etree.SubElement(third_infinitive_element, name)
         _extract_active_and_passive_forms(cell_values, infinitive, offset=0)
 
@@ -368,10 +365,10 @@ def _extract_fourth_infinitives(table_rows, row_id, infinitives_element):
         if i == 0:
             # First row is special since it also contains the title row for the infinitive
             headlines = list(headlines[1:])
-        name = clean_text(headlines[0].text)
+        name = util.clean_text(headlines[0].text)
         infinitive = etree.SubElement(fourth_infinitive_element, name)
         text = cell_values[0].text
-        infinitive.text = clean_text(text)
+        infinitive.text = util.clean_text(text)
 
 
 def _extract_fifth_infinitives(table_rows, row_id, infinitives_element):
@@ -379,7 +376,7 @@ def _extract_fifth_infinitives(table_rows, row_id, infinitives_element):
     row = table_rows[row_id]
     cell_values = row.find_all('td')
     text = cell_values[0].text
-    element.text = clean_text(text)
+    element.text = util.clean_text(text)
 
 
 def _parse_nominal_forms(table_rows, row_id):
@@ -423,12 +420,12 @@ def parse_pronoun_table(table_rows):
 
 def parse_pronoun_table_row(row):
     row_elements = row.find_all('td')
-    case_name = clean_text(row_elements[0].text)
-    singular = clean_text(row_elements[1].text)
-    plural = clean_text(row_elements[2].text)
+    case_name = util.clean_text(row_elements[0].text)
+    singular = util.clean_text(row_elements[1].text)
+    plural = util.clean_text(row_elements[2].text)
     case_element = etree.Element(case_name)
     singular_element = etree.SubElement(case_element, 'singular')
-    singular_element.text = clean_text(singular)
+    singular_element.text = util.clean_text(singular)
     plural_element = etree.SubElement(case_element, 'plural')
-    plural_element.text = clean_text(plural)
+    plural_element.text = util.clean_text(plural)
     return case_element
