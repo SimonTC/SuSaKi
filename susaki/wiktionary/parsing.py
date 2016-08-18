@@ -53,6 +53,10 @@ class HTMLParser():
         return new_soup
 
     def _extract_inflection_table(self, pos_soup):
+        """
+        Extracts the inflection table from the given pos_soup.
+        Raises a LookupError if no inflectiont table is present.
+        """
         logger.debug('Starting extraction of inflection table')
         inflection_table_soup = pos_soup.find(
             'table',
@@ -198,6 +202,10 @@ class HTMLParser():
         return pos_parts
 
     def _extract_language_part(self, raw_article, language):
+        """
+        Extracts the part of the article that contains information about the
+        source language.
+        """
         logger.debug('Starting language part extraction')
         language_header_tags = raw_article.find_all('h2')
         start_tag = None
