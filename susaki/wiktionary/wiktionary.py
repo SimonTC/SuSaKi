@@ -1,5 +1,5 @@
 from susaki.wiktionary.connectors import HTMLConnector, APIConnector
-from susaki.wiktionary.parsing import HTMLParser
+from susaki.wiktionary.wiki_parsing import article_parsing
 import re
 import logging
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
@@ -14,7 +14,6 @@ class Wiktionary:
         self.language = language
         self.api_connector = APIConnector()
         self.html_connector = HTMLConnector(language)
-        self.parser = HTMLParser()
 
     def lookup(self, word, only_api=True):
         """ Lookup the given word on wiktionary.
@@ -37,7 +36,7 @@ class Wiktionary:
                 suggestions = self.html_connector.collect_raw_article(word)
                 return suggestions
         else:
-            article_root = self.parser.parse_article(raw_article, word, self.language)
+            article_root = article_parsing.parse_article(raw_article, word, self.language)
 
         return article_root
 

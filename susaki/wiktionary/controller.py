@@ -7,12 +7,11 @@ Created on Apr 20, 2016
 import argparse
 from collections import defaultdict
 from susaki.wiktionary.connectors import HTMLConnector, APIConnector
-from susaki.wiktionary.parsing import HTMLParser
+from susaki.wiktionary.wiki_parsing import article_parsing
 import re
 import logging
 import os
 from datetime import datetime
-import traceback
 
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)
@@ -25,7 +24,6 @@ class Wiktionary:
         self._setup_command_dict()
         self.api_connector = APIConnector()
         self.html_connector = HTMLConnector(language)
-        self.parser = HTMLParser()
 
     def _setup_command_dict(self):
         self.command_dict = defaultdict(lambda: self.process_user_query)
@@ -39,7 +37,7 @@ class Wiktionary:
     def change_language(self, command):
         # print('Language change is currently not implemented')
         print('WARNING: This tool has not been tested with other source languages '
-              'thank Finnish. It should work, but you might get weird results.')
+              'than Finnish. It should work, but you might get weird results.')
         new_language = input('Which source language would you like to use?: >> ')
         old_language = self.language
         self.language = new_language
@@ -96,7 +94,7 @@ class Wiktionary:
                 else:
                     raise
         try:
-            article = self.parser.parse_article(
+            article = article_parsing.parse_article(
                 raw_article, word, self.language)
             logger.debug('Parsing of article succeeded')
         except LookupError as err:

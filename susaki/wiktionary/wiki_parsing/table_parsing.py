@@ -10,14 +10,6 @@ FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
 
-def clean_text(text):
-    """
-    Removes line break characters and unneeded spaces from the text
-    """
-    clean = text.replace('\n', '')
-    clean = clean.strip()
-    clean = re.sub(r'  *', ' ', clean)
-    return clean
 
 ########################################
 # Entry parsing function
