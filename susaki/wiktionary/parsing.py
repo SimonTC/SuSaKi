@@ -16,7 +16,7 @@ from susaki.wiktionary.wiki_parsing.table_parsing import parse_inflection_table,
 import argparse
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
-logger = logging.getLogger('__name__')
+logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 

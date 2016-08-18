@@ -6,7 +6,7 @@ from lxml import etree
 
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
-logger = logging.getLogger('__name__')
+logger = logging.getLogger(__name__)
 
 
 ########################################
