@@ -11,7 +11,7 @@ import os
 from distutils import dir_util
 
 from susaki.wiktionary.connectors import HTMLConnector
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ class TestHTMLConnector:
         page_path = '/'.join([str(datadir), 'no_result.html'])
         mock_collector.return_value = request_session.get(
             'file://' + page_path)
-        with pytest.raises(KeyError) as error:
+        with pytest.raises(LookupError) as error:
             connector.collect_raw_article('')
         assert 'does not exist on Wiktionary' in str(error)
 
