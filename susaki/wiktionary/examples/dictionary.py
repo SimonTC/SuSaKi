@@ -89,7 +89,7 @@ class Wiktionary:
                     raise
         try:
             article = article_parsing.parse_article(
-                raw_article, word, self.language)
+                raw_article, word, self.language, parse_tables=False)
             logger.debug('Parsing of article succeeded')
         except LookupError as err:
             if 'No explanations exists for the language:' in str(err):
@@ -142,7 +142,7 @@ class Wiktionary:
 
 def report_exception(exception, command):
     """ Dirty reporting of exceptions. Should be handled in the logger module"""
-    root_dir = os.path.normpath(os.path.join(__file__, '..', '..', '..'))
+    root_dir = os.path.normpath(os.path.join(__file__, '..', '..', '..', '..'))
     crash_dir = '/'.join([root_dir, 'logs', 'crash'])
     if not os.path.exists(crash_dir):
         os.makedirs(crash_dir)
