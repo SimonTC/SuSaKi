@@ -1,5 +1,5 @@
 from susaki.wiktionary.connectors import APIConnector
-from susaki.wiktionary.parsing import HTMLParser
+from susaki.wiktionary.wiki_parsing import article_parsing
 import logging
 import time
 import argparse
@@ -12,7 +12,6 @@ logging.getLogger('susaki.wiktionary.wiki_parsing.table_parsing').setLevel(loggi
 logger.setLevel(logging.INFO)
 
 connector = APIConnector()
-parser = HTMLParser()
 
 
 def collect_raw_article(word):
@@ -52,7 +51,7 @@ def translate(file_path):
                     if raw_article:
                         logger.debug('Article exists')
                         try:
-                            xml_root = parser.parse_article(
+                            xml_root = article_parsing.parse_article(
                                 raw_article, line, 'Finnish')
                             translations = collect_translations(xml_root)
                         except Exception as err:
