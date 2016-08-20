@@ -89,7 +89,8 @@ def extract_language_part(raw_article, language):
 ########################################
 POSSIBLE_WORD_CLASSES = ('Verb|Noun|Adjective|Numeral|Pronoun|Adverb|'
                          'Suffix|Conjunction|Determiner|Exclamation|'
-                         'Preposition|Postposition|Prefix|Abbreviation|Particle')
+                         'Preposition|Postposition|Prefix|Abbreviation|Particle|'
+                         'Contraction|Interjection')
 
 
 def extract_pos_parts(language_part):
