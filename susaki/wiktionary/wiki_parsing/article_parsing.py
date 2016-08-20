@@ -15,7 +15,7 @@ PARSER = 'html.parser'
 ########################################
 # Entry function
 ########################################
-def parse_article(raw_article, word, language='Finnish'):
+def parse_article(raw_article, word, language='Finnish', parse_tables=True):
     """
     raw_article: html-document of the whole article for the word.
         Must have the same format as that returned by the Wiktionary API
@@ -41,7 +41,7 @@ def parse_article(raw_article, word, language='Finnish'):
     pos_parts_root = etree.Element('POS-parts')
     language_element.append(pos_parts_root)
     for pos_part in pos_parts:
-        pos_part_element = parse_POS(pos_part)
+        pos_part_element = parse_POS(pos_part, parse_tables)
         pos_parts_root.append(pos_part_element)
 
     return article_root
@@ -146,7 +146,7 @@ def tag_ends_pos_part(tag, pos_tag_header_level):
 ########################################
 # POS parsing
 ########################################
-def parse_POS(pos_part):
+def parse_POS(pos_part, parse_table=True):
     pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
     pos_root = etree.Element(pos_type)
     translations_root = etree.Element('Translations')
@@ -155,6 +155,17 @@ def parse_POS(pos_part):
     for translation_part in translation_parts:
         translation_element = parse_translation(translation_part)
         translations_root.append(translation_element)
+    if parse_table:
+        table_element = do_table_parsing(pos_part, pos_type)
+        try:
+            pos_root.append(table_element)
+        except TypeError:
+            pass
+    return pos_root
+
+
+def do_table_parsing(pos_part, pos_type):
+    table_element = None
     try:
         inflection_table = extract_inflection_table(pos_part)
     except LookupError as err:
@@ -167,8 +178,7 @@ def parse_POS(pos_part):
         logger.debug('Found a {} inflection table'.format(pos_type))
         table_element = table_parsing.parse_inflection_table(
             inflection_table, pos_type.lower())
-        pos_root.append(table_element)
-    return pos_root
+    return table_element
 
 
 ########################################
