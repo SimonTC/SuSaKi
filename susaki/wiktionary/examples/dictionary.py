@@ -1,9 +1,3 @@
-'''
-Created on Apr 20, 2016
-
-@author: simon
-'''
-
 import argparse
 from collections import defaultdict
 from susaki.wiktionary.connectors import HTMLConnector, APIConnector
