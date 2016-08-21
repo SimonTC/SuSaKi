@@ -10,7 +10,8 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger('susaki.wiktionary.parsing').setLevel(logging.WARNING)
 logging.getLogger('susaki.wiktionary.wiki_parsing.table_parsing').setLevel(logging.WARNING)
 logging.getLogger('susaki.wiktionary.wiki_parsing.article_parsing').setLevel(logging.WARNING)
-logger.setLevel(logging.DEBUG)
+logging.getLogger('susaki.wiktionary.wiki_parsing.util').setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 
 connector = APIConnector()
 
