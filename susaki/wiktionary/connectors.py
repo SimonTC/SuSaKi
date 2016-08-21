@@ -5,8 +5,9 @@ Created on Apr 21, 2016
 '''
 import abc
 import requests
-
 from bs4 import BeautifulSoup
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Connector(metaclass=abc.ABCMeta):
@@ -25,7 +26,11 @@ class Connector(metaclass=abc.ABCMeta):
 
 class APIConnector:
 
+    def __init__(self):
+        logger.debug('Initializing APIConnector')
+
     def collect_raw_article(self, word):
+        logger.debug('Collecting the raw article for "{}" using the API'.format(word))
         url = 'https://en.wiktionary.org/w/api.php?format=xml&action=query&prop=revisions&titles={}&rvprop=content&rvparse&redirects=true'.format(word)
         req = requests.get(url)
         soup = BeautifulSoup(req.content, 'lxml')
@@ -34,12 +39,14 @@ class APIConnector:
             content_text = content.text
         except AttributeError:
             raise LookupError("Article can't be accessed by API")
+        logger.debug('Article found')
         return content_text
 
 
 class HTMLConnector(Connector):
 
     def __init__(self, language):
+        logger.debug('Initializing HTMLConnector')
         super().__init__(language)
 
     def _collect_page(self, word):
@@ -55,7 +62,7 @@ class HTMLConnector(Connector):
         If no page exists, but the word does exist in other articles a list of the names of these articles is returned.
         If The word doesn't exist on Wiktionary a KeyError excpetion is raised
         """
-
+        logger.debug('Collecting the raw article for {} using the HTML connector'.format(word))
         # Collect html page
         req = self._collect_page(word)
         soup = BeautifulSoup(req.content, 'html.parser')
@@ -64,6 +71,7 @@ class HTMLConnector(Connector):
         article_content = content.find('div', id='mw-content-text')
 
         if heading.string == 'Search results':
+            logger.debug("Article doesn't exist")
             # Check to see if they have any recommendations
             search_results = article_content.select(
                 '[class~=searchresults]')[0]
@@ -71,6 +79,7 @@ class HTMLConnector(Connector):
                 raise LookupError(
                     'The word "{}" does not exist on Wiktionary'.format(word))
             else:
+                logger.debug('Suggestions found')
                 suggestions = search_results.find(
                     'ul', attrs={'class': 'mw-search-results'})
                 suggested_words = []
@@ -80,6 +89,7 @@ class HTMLConnector(Connector):
                 return suggested_words
         else:
             # Page exists
+            logger.debug('Article found')
             return req
 
 if __name__ == '__main__':
