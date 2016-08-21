@@ -64,6 +64,7 @@ class Wiktionary:
         if re.match('^ *$', word):
             return True
         word = word.strip()
+        word = word.lower()
         try:
             raw_article = self.api_connector.collect_raw_article(word)
             logger.debug('Found raw article')

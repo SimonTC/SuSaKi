@@ -23,7 +23,6 @@ def parse_article(raw_article, word, language='Finnish', parse_tables=True):
     language: source language of the word.
         This language is used to do the translation into English
     """
-    word = word.lower()
     logger.debug('Parsing article')
     article_root = etree.Element('Article')
     word_element = etree.Element('Word')

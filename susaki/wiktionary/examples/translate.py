@@ -16,6 +16,7 @@ connector = APIConnector()
 
 
 def collect_raw_article(word):
+    word = word.lower()
     try:
         raw_article = connector.collect_raw_article(word)
         return raw_article
