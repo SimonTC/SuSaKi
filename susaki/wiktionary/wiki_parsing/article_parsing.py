@@ -4,10 +4,7 @@ import re
 from susaki.wiktionary.wiki_parsing import util, table_parsing
 
 import logging
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
-logging.getLogger("requests").setLevel(logging.WARNING)
 
 PARSER = 'html.parser'
 
@@ -23,7 +20,7 @@ def parse_article(raw_article, word, language='Finnish', parse_tables=True):
     language: source language of the word.
         This language is used to do the translation into English
     """
-    logger.debug('Parsing article')
+    logger.info('Starting article parsing for the word "{}"'.format(word))
     article_root = etree.Element('Article')
     word_element = etree.Element('Word')
     word_element.text = word
@@ -44,6 +41,7 @@ def parse_article(raw_article, word, language='Finnish', parse_tables=True):
         pos_part_element = parse_POS(pos_part, parse_tables)
         pos_parts_root.append(pos_part_element)
 
+    logger.info('Finished article parsing for the word "{}"'.format(word))
     return article_root
 
 
@@ -55,7 +53,7 @@ def extract_language_part(raw_article, language):
     Extracts the part of the article that contains information about the
     source language.
     """
-    logger.debug('Starting language part extraction')
+    logger.debug('Starting language part extraction ({})'.format(language))
     language_header_tags = raw_article.find_all('h2')
     start_tag = None
     end_tag = None
@@ -66,6 +64,7 @@ def extract_language_part(raw_article, language):
         target_language_found = language_header.find(
             'span', {'class': 'mw-headline', 'id': language})
         if target_language_found:
+            logger.debug('{} language part found')
             start_tag = language_header
             logger.debug('Start tag found')
             try:
@@ -77,10 +76,11 @@ def extract_language_part(raw_article, language):
             finally:
                 break
     if not start_tag:
+        logger.debug('{} language part not found')
         raise LookupError(
             'No explanations exists for the language: {}'.format(language))
     language_part = util.extract_soup_between(start_tag, end_tag, raw_article)
-    logger.debug("Finished language part extraction")
+    logger.debug("Finished language part extraction ({})".format(language))
     return language_part
 
 
@@ -130,6 +130,7 @@ def extract_pos_parts(language_part):
 def get_pos_header_level(pos_tag_headers):
     header_levels = {header.name for header in pos_tag_headers}
     if len(header_levels) != 1:
+        logger.debug('The POS-parts are placed at different header levels')
         raise ValueError('The POS-parts are placed at different header levels')
     pos_header_level = header_levels.pop()[1]
     return pos_header_level
@@ -148,6 +149,7 @@ def tag_ends_pos_part(tag, pos_tag_header_level):
 # POS parsing
 ########################################
 def parse_POS(pos_part, parse_table=True):
+    logger.debug('Start parsing of a single POS part, parsing table = {}'.format(parse_table))
     pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
     pos_root = etree.Element(pos_type)
     translations_root = etree.Element('Translations')
@@ -162,6 +164,7 @@ def parse_POS(pos_part, parse_table=True):
             pos_root.append(table_element)
         except TypeError:
             pass
+    logger.debug('Finished parsing the POS part')
     return pos_root
 
 
@@ -196,7 +199,7 @@ def extract_translations(pos_soup):
     num_translations = len(translations)
     if num_translations == 0:
         raise LookupError('No translations present')
-    logger.debug('Translations found: {}'.format(num_translations))
+    logger.debug('Translations found and extracted: {}'.format(num_translations))
     return translations
 
 
@@ -212,6 +215,7 @@ def parse_translation(translation_soup):
     text_element = etree.Element('Text')
     text_element.text = text_clean
     root.append(text_element)
+    logger.debug('Finished parsing translation part')
     return root
 
 
@@ -238,7 +242,7 @@ def extract_inflection_table(pos_soup):
 # Example parsing
 ########################################
 def parse_example(example_soup):
-    logging.debug('Start example parsing on following soup:\n{}\n'.format(example_soup))
+    logging.debug('Start parsing examples')
     example_part_root = etree.Element('Examples')
     example_elements = example_soup.find_all(
         re.compile('dd|li'), recursive=False)
@@ -270,4 +274,5 @@ def parse_example(example_soup):
         example_root.append(example_text_element)
 
     example_soup.clear()
+    logging.debug('Finished parsing examples')
     return example_part_root
