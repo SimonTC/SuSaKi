@@ -7,9 +7,10 @@ import argparse
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
-logging.getLogger('susaki.wiktionary.parsing').setLevel(logging.INFO)
-logging.getLogger('susaki.wiktionary.wiki_parsing.table_parsing').setLevel(logging.INFO)
-logger.setLevel(logging.INFO)
+logging.getLogger('susaki.wiktionary.parsing').setLevel(logging.WARNING)
+logging.getLogger('susaki.wiktionary.wiki_parsing.table_parsing').setLevel(logging.WARNING)
+logging.getLogger('susaki.wiktionary.wiki_parsing.article_parsing').setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 connector = APIConnector()
 
@@ -26,9 +27,11 @@ def collect_translations(article_root):
     translation_list = []
     language_part = article_root.find('Languages').find('Finnish')
     pos_parts = language_part.find('POS-parts')
+    logger.debug('Number of POS-parts: {}'.format(len(pos_parts)))
     for pos in pos_parts:
         # print('\n   {}'.format(pos.tag))
         translations = pos.find('Translations')
+        logger.debug('Number of translations-parts: {}'.format(len(translations)))
         for translation in translations:
             text = translation.find('Text')
             text = text.text
