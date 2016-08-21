@@ -1,10 +1,8 @@
 from bs4 import BeautifulSoup
 import re
 import logging
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
 logger = logging.getLogger(__name__)
-logging.getLogger("requests").setLevel(logging.WARNING)
 
 
 def extract_soup_between(from_tag, to_tag, soup, parser='html.parser'):
@@ -30,6 +28,7 @@ def extract_soup_between(from_tag, to_tag, soup, parser='html.parser'):
             break
     soup_text = ''.join(tags_between)
     new_soup = BeautifulSoup(soup_text, parser)
+    logger.debug('Finished extracting soup between two tags')
     return new_soup
 
 
@@ -37,7 +36,9 @@ def clean_text(text):
     """
     Removes line break characters and unneeded spaces from the text
     """
+    logger.debug('Cleaning "{}"'.format(text))
     clean = text.replace('\n', '')
     clean = clean.strip()
     clean = re.sub(r'  *', ' ', clean)
+    logger.debug('Clean text: "{}"'.format(clean))
     return clean
