@@ -4,7 +4,12 @@ import os
 from susaki.definitions import CRASH_DIR, QUERY_DIR
 
 
+def query_filter(msg):
+    return "Collecting article for" in msg.getMessage()
+
+
 def setup_logging(debugging=False):
+
     os.makedirs(CRASH_DIR, exist_ok=True)
     error_handler = logging.handlers.TimedRotatingFileHandler(
         filename=os.path.join(CRASH_DIR, 'crash'), when='s', interval=1, delay=True)
@@ -15,7 +20,7 @@ def setup_logging(debugging=False):
         filename=os.path.join(QUERY_DIR, 'queries'), when='midnight')
     querry_handler.setLevel(logging.INFO)
 
-    querry_handler.addFilter(lambda msg: "Processing user query" in msg.getMessage())
+    querry_handler.addFilter(query_filter)
     querry_handler.setFormatter(logging.Formatter("%(asctime)s: %(filename)s: %(message)s"))
 
     logger = logging.getLogger()
@@ -29,4 +34,5 @@ def setup_logging(debugging=False):
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
+
     return logger
