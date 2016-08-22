@@ -4,18 +4,41 @@ from susaki.wiktionary.connectors import HTMLConnector, APIConnector
 from susaki.wiktionary.wiki_parsing import article_parsing
 import re
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import os
 from datetime import datetime
+from susaki.definitions import CRASH_DIR, QUERY_DIR
 
+############################
+# Setup logging
+############################
+os.makedirs(CRASH_DIR, exist_ok=True)
+error_handler = logging.handlers.TimedRotatingFileHandler(
+    filename=os.path.join(CRASH_DIR, 'crash'), when='s', interval=1, delay=True)
+error_handler.setLevel(logging.ERROR)
 
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
-logger = logging.getLogger(__name__)
+os.makedirs(QUERY_DIR, exist_ok=True)
+querry_handler = TimedRotatingFileHandler(
+    filename=os.path.join(QUERY_DIR, 'queries'), when='midnight')
+querry_handler.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+console_handler.setFormatter(logging.Formatter("%(levelname)s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"))
+
+querry_handler.addFilter(lambda msg: "Processing user query" in msg.getMessage())
+querry_handler.setFormatter(logging.Formatter("%(asctime)s: %(filename)s: %(message)s"))
+
+logger = logging.getLogger()
+logger.addHandler(error_handler)
+logger.addHandler(querry_handler)
+logger.setLevel(logging.INFO)
 
 
 class Wiktionary:
 
     def __init__(self, language):
+        logger.info('Initializing Wiktionary class')
         self.language = language
         self._setup_command_dict()
         self.api_connector = APIConnector()
@@ -64,7 +87,7 @@ class Wiktionary:
                     pass
 
     def process_user_query(self, word):
-        logger.info('Processing user querry: {}'.format(word))
+        logger.info('Processing user query: {}'.format(word))
         if re.match('^ *$', word):
             return True
         word = word.strip()
@@ -174,11 +197,13 @@ if __name__ == '__main__':
     parser.add_argument(
         "-l", "--language", help="The language you want translations from", default="Finnish")
     parser.add_argument(
-        "-d", "--debug", help="Set to true if you want debug output", default=False
+        "-d", "--debug", help="Set to True if you want debug output", default=False
     )
     args = parser.parse_args()
     language = args.language
     if args.debug:
+        logger.addHandler(console_handler)
         logger.setLevel(logging.DEBUG)
+
     wiktionary = Wiktionary(language)
     wiktionary.run()
