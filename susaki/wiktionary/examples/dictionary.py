@@ -7,8 +7,8 @@ import logging
 import os
 from datetime import datetime
 
-logger = logging.getLogger()
-logger.setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Wiktionary:
@@ -37,6 +37,7 @@ class Wiktionary:
         self.language = new_language
         print('The source language was changed from {} to {}'.format(
             old_language, self.language))
+        logger.info('Changedlanguage from {} to {}'.format(old_language, new_language))
         return True
 
     def print_information(self, article_root):
@@ -61,29 +62,33 @@ class Wiktionary:
                     pass
 
     def process_user_query(self, word):
+        logger.info('Processing user querry: {}'.format(word))
         if re.match('^ *$', word):
             return True
         word = word.strip()
         word = word.lower()
         try:
             raw_article = self.api_connector.collect_raw_article(word)
-            logger.debug('Found raw article')
+            logger.info('Found raw article using the API')
         except LookupError:
             logger.debug('Lookup error while getting article from api')
             try:
                 req = self.html_connector.collect_raw_article(word)
                 if type(req) is list:
+                    logger.info('No article found but suggestions exist')
                     print(
                         '"{}" does not have its own article, however it does exist in the articles for the following words:'.format(word))
                     for suggestion in req:
                         print(''.join(['  ', suggestion]))
                     return True
                 else:
+                    logger.info('No articles exists containing "{}"'.format(word))
                     raise LookupError(
                         'The word "{}" does not exist on Wiktionary'.format(word))
 
             except LookupError as error:
                 if 'does not exist on Wiktionary' in str(error):
+                    logger.info('No article exist for {}'.format(word))
                     print(str(error).replace("'", ""))
                     return True
                 else:
@@ -91,11 +96,12 @@ class Wiktionary:
         try:
             article = article_parsing.parse_article(
                 raw_article, word, self.language, parse_tables=False)
-            logger.debug('Parsing of article succeeded')
+            logger.info('Parsing of article succeeded')
         except LookupError as err:
             if 'No explanations exists for the language:' in str(err):
-                print(
-                    '"{}" does not seem to exists as a word in the {} - English dictionary'.format(word, self.language))
+                message = '"{}" does not exist as a word in the {} - English dictionary'.format(word, self.language)
+                logger.info(message)
+                print(message)
                 return True
             else:
                 raise
