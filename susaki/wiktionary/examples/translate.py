@@ -1,79 +1,79 @@
 from susaki.wiktionary.connectors import APIConnector
 from susaki.wiktionary.wiki_parsing import article_parsing
-import logging
 import time
 import argparse
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-logging.getLogger("requests").setLevel(logging.WARNING)
-logging.getLogger('susaki.wiktionary.parsing').setLevel(logging.WARNING)
-logging.getLogger('susaki.wiktionary.wiki_parsing.table_parsing').setLevel(logging.WARNING)
-logging.getLogger('susaki.wiktionary.wiki_parsing.article_parsing').setLevel(logging.WARNING)
-logging.getLogger('susaki.wiktionary.wiki_parsing.util').setLevel(logging.WARNING)
-logger.setLevel(logging.INFO)
-
-connector = APIConnector()
+from examplelogging import setup_logging
+import logging
 
 
-def collect_raw_article(word):
-    word = word.lower()
-    try:
-        raw_article = connector.collect_raw_article(word)
-        return raw_article
-    except:
-        return None
+class ListTranslator():
 
+    def __init__(self, debug=False):
+        self.setup_logging(debug)
+        self.connector = APIConnector()
 
-def collect_translations(article_root):
-    translation_list = []
-    language_part = article_root.find('Languages').find('Finnish')
-    pos_parts = language_part.find('POS-parts')
-    logger.debug('Number of POS-parts: {}'.format(len(pos_parts)))
-    for pos in pos_parts:
-        # print('\n   {}'.format(pos.tag))
-        translations = pos.find('Translations')
-        logger.debug('Number of translations-parts: {}'.format(len(translations)))
-        for translation in translations:
-            text = translation.find('Text')
-            text = text.text
-            translation_list.append(text)
-    return translation_list
+    def setup_logging(self, debug):
+        self.logger = setup_logging(args.debug)
+        info_handler = logging.StreamHandler()
+        info_handler.addFilter(logging.Filter('root'))
+        self.logger.addHandler(info_handler)
 
+    def collect_raw_article(self, word):
+        word = word.lower()
+        try:
+            raw_article = self.connector.collect_raw_article(word)
+            return raw_article
+        except:
+            return None
 
-def translate(file_path):
-    start_time = time.time()
-    logger.info('Starting translation of words in the file {}'.format(file_path))
-    logger.debug('Opening source file {}'.format(file_path))
-    with open(file_path) as source_file:
-        logger.debug('Opening target file {}'.format(file_path))
-        with open(file_path + '_translated', 'w') as target_file:
-            for line in source_file:
-                line = line.replace('\n', '')
-                if line != '':
-                    logger.info('Collecting article for {}'.format(line))
-                    raw_article = collect_raw_article(line)
-                    if raw_article:
-                        logger.debug('Article exists')
-                        try:
-                            xml_root = article_parsing.parse_article(
-                                raw_article, line, 'Finnish')
-                            translations = collect_translations(xml_root)
-                        except Exception as err:
-                            logger.info("Error while parsing article. Ignoring")
-                            logger.debug(str(err))
+    def collect_translations(self, article_root):
+        translation_list = []
+        language_part = article_root.find('Languages').find('Finnish')
+        pos_parts = language_part.find('POS-parts')
+        self.logger.debug('Number of POS-parts: {}'.format(len(pos_parts)))
+        for pos in pos_parts:
+            # print('\n   {}'.format(pos.tag))
+            translations = pos.find('Translations')
+            self.logger.debug('Number of translations-parts: {}'.format(len(translations)))
+            for translation in translations:
+                text = translation.find('Text')
+                text = text.text
+                translation_list.append(text)
+        return translation_list
+
+    def translate(self, file_path):
+        start_time = time.time()
+        self.logger.info('Starting translation of words in the file {}'.format(file_path))
+        self.logger.debug('Opening source file {}'.format(file_path))
+        with open(file_path) as source_file:
+            self.logger.debug('Opening target file {}'.format(file_path))
+            with open(file_path + '_translated', 'w') as target_file:
+                for line in source_file:
+                    line = line.replace('\n', '')
+                    if line != '':
+                        self.logger.info('Collecting article for {}'.format(line))
+                        raw_article = self.collect_raw_article(line)
+                        if raw_article:
+                            self.logger.debug('Article exists')
+                            try:
+                                xml_root = article_parsing.parse_article(
+                                    raw_article, line, 'Finnish')
+                                translations = self.collect_translations(xml_root)
+                            except Exception as err:
+                                self.logger.info("Error while parsing article. Ignoring")
+                                self.logger.debug(str(err))
+                                translations = None
+                        else:
+                            self.logger.info('No article exists')
                             translations = None
-                    else:
-                        logger.debug('No article exists')
-                        translations = None
-                    if translations:
-                        target_file.write(
-                            '{}\t{}\n'.format(line, ' | '.join(translations)))
-                    else:
-                        target_file.write('{}\t[UNKNOWN]\n'.format(line))
+                        if translations:
+                            target_file.write(
+                                '{}\t{}\n'.format(line, ' | '.join(translations)))
+                        else:
+                            target_file.write('{}\t[UNKNOWN]\n'.format(line))
 
-    logger.info('Finished translating the words in the file. Took {:d} seconds.'.format(int(
-        time.time() - start_time)))
+        self.logger.info('Finished translating the words in the file. Took {:d} seconds.'.format(int(
+            time.time() - start_time)))
 
 if __name__ == '__main__':
     # Parse arguments
@@ -85,8 +85,5 @@ if __name__ == '__main__':
     )
     args = argparser.parse_args()
     file_path = args.file
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-        logging.getLogger('susaki.wiktionary.parsing').setLevel(logging.DEBUG)
-        logging.getLogger('susaki.wiktionary.wiki_parsing.table_parsing').setLevel(logging.DEBUG)
-    translate(file_path)
+    translator = ListTranslator(debug=args.debug)
+    translator.translate(file_path)
