@@ -59,7 +59,7 @@ class Wiktionary:
                     pass
 
     def process_user_query(self, word):
-        self.logger.info('Processing user query: {}'.format(word))
+        self.logger.info('Collecting article for {}'.format(word))
         if re.match('^ *$', word):
             return True
         word = word.strip()
