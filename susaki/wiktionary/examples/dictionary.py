@@ -3,46 +3,18 @@ from collections import defaultdict
 from susaki.wiktionary.connectors import HTMLConnector, APIConnector
 from susaki.wiktionary.wiki_parsing import article_parsing
 import re
-import logging
-from logging.handlers import TimedRotatingFileHandler
-import os
-from datetime import datetime
-from susaki.definitions import CRASH_DIR, QUERY_DIR
-
-############################
-# Setup logging
-############################
-os.makedirs(CRASH_DIR, exist_ok=True)
-error_handler = logging.handlers.TimedRotatingFileHandler(
-    filename=os.path.join(CRASH_DIR, 'crash'), when='s', interval=1, delay=True)
-error_handler.setLevel(logging.ERROR)
-
-os.makedirs(QUERY_DIR, exist_ok=True)
-querry_handler = TimedRotatingFileHandler(
-    filename=os.path.join(QUERY_DIR, 'queries'), when='midnight')
-querry_handler.setLevel(logging.INFO)
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(logging.Formatter("%(levelname)s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"))
-
-querry_handler.addFilter(lambda msg: "Processing user query" in msg.getMessage())
-querry_handler.setFormatter(logging.Formatter("%(asctime)s: %(filename)s: %(message)s"))
-
-logger = logging.getLogger()
-logger.addHandler(error_handler)
-logger.addHandler(querry_handler)
-logger.setLevel(logging.INFO)
+from examplelogging import setup_logging
 
 
 class Wiktionary:
 
-    def __init__(self, language):
-        logger.info('Initializing Wiktionary class')
+    def __init__(self, language, debugging=False):
         self.language = language
         self._setup_command_dict()
         self.api_connector = APIConnector()
         self.html_connector = HTMLConnector(language)
+        self.logger = setup_logging(debugging)
+        self.logger.info('Initialized Wiktionary class')
 
     def _setup_command_dict(self):
         self.command_dict = defaultdict(lambda: self.process_user_query)
@@ -62,7 +34,7 @@ class Wiktionary:
         self.language = new_language
         print('The source language was changed from {} to {}'.format(
             old_language, self.language))
-        logger.info('Changedlanguage from {} to {}'.format(old_language, new_language))
+        self.logger.info('Changedlanguage from {} to {}'.format(old_language, new_language))
         return True
 
     def print_information(self, article_root):
@@ -87,33 +59,33 @@ class Wiktionary:
                     pass
 
     def process_user_query(self, word):
-        logger.info('Processing user query: {}'.format(word))
+        self.logger.info('Processing user query: {}'.format(word))
         if re.match('^ *$', word):
             return True
         word = word.strip()
         word = word.lower()
         try:
             raw_article = self.api_connector.collect_raw_article(word)
-            logger.info('Found raw article using the API')
+            self.logger.info('Found raw article using the API')
         except LookupError:
-            logger.debug('Lookup error while getting article from api')
+            self.logger.debug('Lookup error while getting article from api')
             try:
                 req = self.html_connector.collect_raw_article(word)
                 if type(req) is list:
-                    logger.info('No article found but suggestions exist')
+                    self.logger.info('No article found but suggestions exist')
                     print(
                         '"{}" does not have its own article, however it does exist in the articles for the following words:'.format(word))
                     for suggestion in req:
                         print(''.join(['  ', suggestion]))
                     return True
                 else:
-                    logger.info('No articles exists containing "{}"'.format(word))
+                    self.logger.info('No articles exists containing "{}"'.format(word))
                     raise LookupError(
                         'The word "{}" does not exist on Wiktionary'.format(word))
 
             except LookupError as error:
                 if 'does not exist on Wiktionary' in str(error):
-                    logger.info('No article exist for {}'.format(word))
+                    self.logger.info('No article exist for {}'.format(word))
                     print(str(error).replace("'", ""))
                     return True
                 else:
@@ -121,11 +93,11 @@ class Wiktionary:
         try:
             article = article_parsing.parse_article(
                 raw_article, word, self.language, parse_tables=False)
-            logger.info('Parsing of article succeeded')
+            self.logger.info('Parsing of article succeeded')
         except LookupError as err:
             if 'No explanations exists for the language:' in str(err):
                 message = '"{}" does not exist as a word in the {} - English dictionary'.format(word, self.language)
-                logger.info(message)
+                self.logger.info(message)
                 print(message)
                 return True
             else:
@@ -166,7 +138,7 @@ class Wiktionary:
             try:
                 status = self.command_dict[command](command)
             except Exception:
-                logger.error(
+                self.logger.error(
                     'Failed to process the following command: "{}"'.format(command),
                     exc_info=True)
                 print('An error occured while processing the command "{}"'.format(command))
@@ -185,9 +157,5 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     language = args.language
-    if args.debug:
-        logger.addHandler(console_handler)
-        logger.setLevel(logging.DEBUG)
-
-    wiktionary = Wiktionary(language)
+    wiktionary = Wiktionary(language, args.debug)
     wiktionary.run()
