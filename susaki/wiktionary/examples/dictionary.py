@@ -7,8 +7,10 @@ import logging
 import os
 from datetime import datetime
 
+
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Wiktionary:
@@ -140,9 +142,13 @@ class Wiktionary:
             command = input('>> ')
             try:
                 status = self.command_dict[command](command)
-            except Exception as e:
-                report_exception(e, command)
-                raise
+            except Exception:
+                logger.error(
+                    'Failed to process the following command: "{}"'.format(command),
+                    exc_info=True)
+                print('An error occured while processing the command "{}"'.format(command))
+                # report_exception(e, command)
+                # raise
             else:
                 print()
 
