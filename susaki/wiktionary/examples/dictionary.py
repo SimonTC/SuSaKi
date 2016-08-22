@@ -170,24 +170,8 @@ class Wiktionary:
                     'Failed to process the following command: "{}"'.format(command),
                     exc_info=True)
                 print('An error occured while processing the command "{}"'.format(command))
-                # report_exception(e, command)
-                # raise
             else:
                 print()
-
-
-def report_exception(exception, command):
-    """ Dirty reporting of exceptions. Should be handled in the logger module"""
-    root_dir = os.path.normpath(os.path.join(__file__, '..', '..', '..', '..'))
-    crash_dir = '/'.join([root_dir, 'logs', 'crash'])
-    if not os.path.exists(crash_dir):
-        os.makedirs(crash_dir)
-
-    crash_log_name = '/'.join([crash_dir, '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())])
-
-    with open(crash_log_name, 'w') as f:
-        f.write('Exception while processing following command: "{}"\n'.format(command))
-        f.write(str(exception))
 
 
 if __name__ == '__main__':
