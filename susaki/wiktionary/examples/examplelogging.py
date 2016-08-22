@@ -29,7 +29,7 @@ def setup_logging(debugging=False):
     if debugging:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(logging.Formatter("%(levelname)s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"))
+        console_handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"))
         logger.addHandler(console_handler)
         logger.setLevel(logging.DEBUG)
     else:
