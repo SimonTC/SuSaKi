@@ -26,15 +26,15 @@ class Wiktionary:
         return False
 
     def change_language(self, command):
-        # print('Language change is currently not implemented')
-        print('WARNING: This tool has not been tested with other source languages '
-              'than Finnish. It should work, but you might get weird results.')
-        new_language = input('Which source language would you like to use?: >> ')
-        old_language = self.language
-        self.language = new_language
-        print('The source language was changed from {} to {}'.format(
-            old_language, self.language))
-        self.logger.info('Changedlanguage from {} to {}'.format(old_language, new_language))
+        print('Language change is currently not implemented')
+        # print('WARNING: This tool has not been tested with other source languages '
+        #       'than Finnish. It should work, but you might get weird results.')
+        # new_language = input('Which source language would you like to use?: >> ')
+        # old_language = self.language
+        # self.language = new_language
+        # print('The source language was changed from {} to {}'.format(
+        #     old_language, self.language))
+        # self.logger.info('Changedlanguage from {} to {}'.format(old_language, new_language))
         return True
 
     def print_information(self, article_root):
@@ -121,8 +121,8 @@ class Wiktionary:
             'You are currently accessing the en-{} dictionary.'.format(self.language))
         print(
             'To look up a word and its meaning in English just write it an press Enter.')
-        print('To change the language used write "{}" and press Enter'.format(
-            language_change_word[0]))
+        # print('To change the language used write "{}" and press Enter'.format(
+        #     language_change_word[0]))
         print(
             'To exit this program write "{}" and press Enter'.format(stop_word[0]))
         print('To show this message again write "{}" and press Enter'.format(
