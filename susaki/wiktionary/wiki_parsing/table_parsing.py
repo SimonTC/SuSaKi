@@ -49,11 +49,11 @@ def parse_inflection_table(table_soup, table_type):
 def parse_meta_information(headline_row):
     logger.debug('Starting extracting meta info from table')
     headline_element = headline_row.th
-    headline_text = headline_element.text
+    headline_text = util.clean_text(headline_element.text)
     logger.debug('Headline text: {}'.format(headline_text.replace('\n', '')))
     word, kotus_type, kotus_word, gradation = extract_meta_information(headline_text)
     meta_element = create_meta_tree(word, kotus_type, kotus_word, gradation)
-    logger.debug('FInished extracting meta info from table')
+    logger.debug('Finished extracting meta info from table')
     return meta_element
 
 
