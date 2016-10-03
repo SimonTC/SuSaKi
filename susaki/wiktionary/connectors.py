@@ -45,14 +45,15 @@ class APIConnector:
 
 class HTMLConnector(Connector):
 
-    def __init__(self, language):
+    def __init__(self, language, server_location='https://'):
         logger.debug('Initializing HTMLConnector')
         super().__init__(language)
+        self.server_location = server_location
 
     def _collect_page(self, word):
         """Collects the html page for the given word"""
-        url = 'https://en.wiktionary.org/wiki/Special:Search?search={}&go=Try+exact+match'.format(
-            word)
+        url = '{}en.wiktionary.org/wiki/Special:Search?search={}&go=Try+exact+match'.format(
+            self.server_location, word)
         req = requests.get(url)
         return req
 
@@ -92,10 +93,12 @@ class HTMLConnector(Connector):
             logger.debug('Article found')
             return req
 
+
 if __name__ == '__main__':
     # collector = HTMLConnector('fi')
-    collector = APIConnector()
+    # collector = APIConnector()
+    collector = HTMLConnector('fi', 'http://localhost:8080/')
     word = 'säälle'
 #     word = 'hkjhk'
     text = collector.collect_raw_article(word)
-    print(text)
+    print(text.text)

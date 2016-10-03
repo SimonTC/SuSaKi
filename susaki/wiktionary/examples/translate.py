@@ -1,3 +1,4 @@
+#!/home/simon/anaconda3/envs/SuSaKi/bin/python
 from susaki.wiktionary.connectors import APIConnector
 from susaki.wiktionary.wiki_parsing import article_parsing
 import time
