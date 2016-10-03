@@ -19,6 +19,7 @@ def parse_article(raw_article, word, language='Finnish', parse_tables=True):
     word: the word this article is about
     language: source language of the word.
         This language is used to do the translation into English
+    Return: root object of the parsed xml tree
     """
     logger.info('Starting article parsing for the word "{}"'.format(word))
     article_root = etree.Element('Article')
