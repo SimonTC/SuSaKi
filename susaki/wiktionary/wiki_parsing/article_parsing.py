@@ -152,6 +152,7 @@ def tag_ends_pos_part(tag, pos_tag_header_level):
 def parse_POS(pos_part, parse_table=True):
     logger.debug('Start parsing of a single POS part, parsing table = {}'.format(parse_table))
     pos_type = pos_part.find('span', {'class': 'mw-headline'}).text
+    pos_type = pos_type.replace(' ', '_')
     pos_root = etree.Element(pos_type)
     translations_root = etree.Element('Translations')
     pos_root.append(translations_root)
