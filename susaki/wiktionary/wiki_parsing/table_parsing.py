@@ -29,7 +29,12 @@ def parse_inflection_table(table_soup, table_type):
         inflection_root.append(meta_element)
 
     if table_type in ['verb', 'suffix']:
-        table_root = parse_verb_table(table_rows)
+        if len(table_rows) < 30:
+            # This is not a full verb inflection table so we ignore it.
+            # This happens when a single case of a verb has its own article
+            return None
+        else:
+            table_root = parse_verb_table(table_rows)
     elif table_type in ['noun', 'adjective', 'adverb', 'proper_noun']:
         table_root = parse_noun_table(table_rows)
     elif table_type in ['pronoun', 'numeral']:
