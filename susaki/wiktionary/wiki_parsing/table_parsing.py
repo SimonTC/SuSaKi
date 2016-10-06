@@ -159,7 +159,11 @@ def parse_noun_table_row(row, noun_case_element, noun_case_name):
     singular = row_elements[0].text
     if noun_case_name == 'genitive':
         logger.debug('Entering genitive case')
-        plural = util.clean_text(row_elements[1].find('span').text)
+        try:
+            plural = util.clean_text(row_elements[1].find('span').text)
+        except AttributeError:
+            # Not all words has plural forms of the genitive cases
+            plural = '—'
     else:
         plural = util.clean_text(row_elements[1].text)
     singular_element = etree.SubElement(noun_case_element, 'singular')
