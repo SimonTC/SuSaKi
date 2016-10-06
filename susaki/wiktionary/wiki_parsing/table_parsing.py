@@ -30,7 +30,7 @@ def parse_inflection_table(table_soup, table_type):
 
     if table_type in ['verb', 'suffix']:
         table_root = parse_verb_table(table_rows)
-    elif table_type in ['noun', 'adjective']:
+    elif table_type in ['noun', 'adjective', 'adverb']:
         table_root = parse_noun_table(table_rows)
     elif table_type in ['pronoun', 'numeral']:
         table_root = parse_pronoun_table(table_rows)
